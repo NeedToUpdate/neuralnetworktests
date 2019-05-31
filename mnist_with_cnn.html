@@ -61,12 +61,6 @@
         <button id="restart" type="button">restart</button>
         <button id="train" type="button">training: off</button>
         <br />
-        <button id="loadbrain" type="button">
-            load pre-trained model (4.6mb)
-        </button>
-        <button id="loadtest" type="button">load training data (110mb)</button>
-        <button id="loadtrain" type="button">load test data (18mb)</button>
-        <br />
         <div class="container" id="training_data">
             <h4>Train:</h4>
             <canvas height="112" width="112" id="canvas"></canvas>
@@ -125,27 +119,7 @@
                 });
                 ctx.putImageData(pixels, startx || 0, starty || 0);
             }
-            function saveSpace(_id, file) {
-                id(_id).innerText = 'loading.';
-                loadFileFromServer(file, null, () => {
-                    id(_id).innerText += '.';
-                })
-                    .then(res => {
-                        if (/[.json]$/.test(file)) {
-                            brain = NeuralNetwork.fromJSON(res);
-                        } else {
-                            somedata = loadCSV(res);
-                        }
-                        id(_id).innerText = 'File loaded!';
-                    })
-                    .catch(err => {
-                        console.log(err);
-                        id(_id).innerText = 'error';
-                    });
-            }
-            id('loadtrain').addEventListener('click', () => saveSpace('loadtrain', 'mnist_train.csv'));
-            id('loadtest').addEventListener('click', () => saveSpace('loadtest', 'mnist_test.csv'));
-            id('loadbrain').addEventListener('click', () => saveSpace('loadbrain', 'mnist_trained_cnn.json'));
+            
             function loadCSV(csv) {
                 let lines = csv.split('\n');
                 let arrays = lines.map(x => {

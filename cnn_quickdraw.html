@@ -54,7 +54,6 @@
         </style>
     </head>
     <body>
-        <p>images trained: star, fish, car, + 3 empty ones for traiing later without having to change the model</p>
         <input type="file" id="choose" />
         <button id="loaddata" type="button">upload</button>
         <button id="download" type="button">download</button>
@@ -62,11 +61,6 @@
         <button id="restart" type="button">restart</button>
         <button id="train" type="button">training: off</button>
         <br />
-        <button id="loadbrain" type="button">
-            load pre-trained model (4.6mb)
-        </button>
-        <button id="loadtest" type="button">load training data (5.6mb)</button>
-        <button id="loadtrain" type="button">load test data (560kb)</button>
         <br />
         <div class="container" id="training_data">
             <h4>Train:</h4>
@@ -153,24 +147,6 @@
                 });
                 ctx.putImageData(pixels, startx || 0, starty || 0);
             }
-            function saveSpace(_id, file) {
-                id(_id).innerText = 'loading.';
-                loadFileFromServer(file, null, () => {
-                    id(_id).innerText += '.';
-                })
-                    .then(res => {
-                        if (/[.json]$/.test(file)) {
-                            brain = NeuralNetwork.fromJSON(res);
-                        } else {
-                            somedata = loadCSV(res);
-                        }
-                        id(_id).innerText = 'File loaded!';
-                    })
-                    .catch(err => {
-                        console.log(err);
-                        id(_id).innerText = 'error';
-                    });
-            }
             function loadCSV(csv) {
                 let lines = csv.split('\n');
                 let arrays = lines.map(x => {
@@ -196,10 +172,7 @@
                 LOOPING = false;
             }
             //button functionality
-            id('loadtrain').addEventListener('click', () => saveSpace('loadtrain', 'quickdraw_3_train.csv'));
-            id('loadtest').addEventListener('click', () => saveSpace('loadtest', 'quickdraw_3_test.csv'));
-            id('loadbrain').addEventListener('click', () => saveSpace('loadbrain', 'mnist_trained_cnn.json'));
-            id('train').addEventListener('click', () => {
+             id('train').addEventListener('click', () => {
                 training = !training;
                 if (training) {
                     id('train').innerText = 'Training: on';
