@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>word2vec, kinda</title>
+    <script type="text/javascript" src="lib/vector.js"></script>
+    <script type="text/javascript" src="lib/matrix.js"></script>
+    <script type="text/javascript" src="lib/nn.js"></script>
+    <script type="text/javascript" src="lib/boundary.js"></script>
+    <script type="text/javascript" src="lib/ray.js"></script>
+    <script type="text/javascript" src="lib/shapes.js"></script>
+    <script type="text/javascript" src="lib/quad.js"></script>
+    <script type="text/javascript" src="lib/rect.js"></script>
+    <script type="text/javascript" src="lib/div.js"></script>
+    <script type="text/javascript" src="lib/drawbase.js"></script>
+</head>
+
+<body style="height: 100%; width: 100%; overflow: hidden">
+<div id="bg"
+     style="zindex:0; position:absolute; top:-10px; left:-10px;height:110%; width:110%; background-color:black;"></div>
+<p id="text1"> sent</p>
+<script type="text/javascript">
+
+let height = window.innerHeight
+let width = window.innerWidth
+
+let words = 
+`the turtle is slow and cool
+the turtle is green and slow
+the monkey is brown and fast
+the monkey is fast and smart
+the green turtle is cool
+the brown monkey is smart
+`
+
+
+let dict = {}
+let wordcount = 0;
+function prepare(data){
+    let ws = 2;
+    let bw = ["a","is","the", "are","and"]
+    let sent = data.split('\n')
+    let joined = sent.map(s=>{
+        let t = s.split(" ")
+        return t.filter(w=>{
+            return !bw.includes(w)
+        })
+    })
+    let allwords = []
+    let occs = Array(joined.length**2).fill(0)
+    joined.forEach(w=>{
+        w.forEach(ww=>{
+        if(!allwords.includes(ww)){
+            allwords.push(ww)
+        }
+        occs[allwords.indexOf(ww)]+=1;
+        })
+    })
+    occs.splice(allwords.length)
+    let testdata = [];
+    wordcount = allwords.length;
+    allwords.forEach((w,i)=>{
+         dict[w] = i;
+         dict[i] = w;
+         let input = w;
+         let outputs = []
+         joined.forEach(line=>{
+             if(line.includes(w)){
+                 for(j=line.indexOf(w)-ws;j<=line.indexOf(w)+ws;j++){
+                      if(line[j] && line[j] !== w){
+                          outputs.push(line[j]);
+                      }
+                 }
+             }
+         })
+         outputs.forEach(x=>{
+             testdata.push({input:w,output:x})
+         })
+    })
+    testdata = shuffle(testdata)
+    //console.log(JSON.stringify(testdata))
+    return testdata;
+
+}
+
+let p = new P("Loss: ",10,20)
+
+let data = prepare(words)
+
+let count = 0;
+function getData(){
+    let x = data[count].input
+    let y = data[count].output
+    x = dict[x]
+    y = dict[y]
+    x = enumerate(x,wordcount)
+    y = enumerate(y,wordcount)
+    count++
+    if(count>wordcount-1){
+        count = 0;
+        data = shuffle(data)
+    }
+    return {input:x,output:y}
+}
+
+function enumerate(n,max){
+     let m = max || 8
+     let a = Array(m).fill(0)
+     a[n] = 1;
+     return a
+}
+function denumerate(arr){
+    
+}
+function argmax(arr){
+    return arr.indexOf(arr.reduce((a,b)=>Math.max(a,b)))
+}
+
+let brain = new NeuralNetwork(wordcount)
+brain.addLayer(5,'dense',{activation_fn: 'linear'})
+
+brain.addLayer(wordcount,'dense',{activation_fn:'softmax'})
+brain.config.loss_fn = 'cross_entropy'
+brain.init()
+
+function train(){
+    let d = getData()
+    brain.train(d.input,d.output)
+    p.shape.innerText = 'Loss: ' + (brain.calc_loss()*100|0)/100;
+}
+
+
+let ps = []
+draw = ()=>{
+    ps.forEach(p=>{
+       p.remove()
+    })
+    ps = []
+    loop(train,50)
+    let w2v = brain.layers[0].weight_array[0][0].copy().transpose().values
+    let max = w2v.reduce((a,b)=>Math.max(rmax(a),rmax(b)),[0,0])
+    let min = w2v.reduce((a,b)=>Math.min(rmin(a),rmin(b)),[0,0])
+    w2v = w2v.map(pair=>{
+       return pair.map(v=>{
+        return normalize(v,min,max)
+       })
+    })
+
+    let newdict = toDict(w2v);
+
+ 
+    Object.keys(newdict).forEach(key=>{
+        let p = newdict[key];
+        let x = (p[0])*((width-40))
+        let y = (p[1])*(height-130) + 100
+        let w = new P(key,x,y)
+        w.shape.style.color = 'rgb('+ p[2]*255 +',' + p[3]*255 + ',' + p[4]*255 + ')'
+        ps.push(w)
+    })
+
+}
+
+function normalize(n,min,max){
+    return ((n-min)/(max-min));
+}
+function rmax(arr){
+    if(arr instanceof Array){
+    return arr.reduce((a,b)=>Math.max(a,b))
+    }else{
+        return arr;
+    }
+}
+function rmin(arr){
+    if(arr instanceof Array){
+    return arr.reduce((a,b)=>Math.min(a,b))
+    }
+    else{
+    return arr
+    }
+}
+
+function toDict(arr){
+    let obj = {};
+    arr.forEach((x,i)=>{
+        let w = dict[i]
+        obj[w] = x
+    })
+    return obj;
+}
+function shuffle(array) {
+  return array.sort(() => Math.random() - 0.5);
+}
+function getColor(num){
+     
+}
+
+setInterval(draw,10)
+
+
+</script>
+
+</body>
+</html>

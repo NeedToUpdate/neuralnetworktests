@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <title>Eating Movers NN</title>
+        <script type="text/javascript" src="lib/vector.js"></script>
+        <script type="text/javascript" src="lib/matrix.js"></script>
+        <script type="text/javascript" src="lib/nn.js"></script>
+        <script type="text/javascript" src="lib/dude.js"></script>
+        <script type="text/javascript" src="lib/food.js"></script>
+        <script type="text/javascript" src="lib/population.js"></script>
+        <script type="text/javascript" src="lib/quad.js"></script>
+        <script type="text/javascript" src="lib/rect.js"></script>
+        <script type="text/javascript" src="lib/div.js"></script>
+        <script type="text/javascript" src="lib/overlay.js"></script>
+        <script type="text/javascript" src="lib/drawbase.js"></script>
+    </head>
+
+    <body style="height: 100%; width: 100%; overflow: hidden">
+        <div id="bg" style="zindex:0; position:absolute; top:-10px; left:-10px;height:110%; width:110%; background-color:black;"></div>
+        <button style="zindex:100; position:absolute;" type="button" id="test1">test1</button>
+        <p style="color:white; zindex:100; position:absolute; top:20px" id="out1" class="output"></p>
+        <p style="color:white; zindex:100; position:absolute; top:40px" id="out2" class="output"></p>
+        <p style="color:white; zindex:100; position:absolute; top:60px" id="out3" class="output"></p>
+        <p style="color:white; zindex:100; position:absolute; top:80px" id="out4" class="output">no ok</p>
+
+        <script type="text/javascript">
+            const POPULATION = 20;
+            const FOOD = 100;
+
+            let width = window.innerWidth;
+            let height = window.innerHeight;
+            let Ox = Math.floor(width / 2);
+            let Oy = height / 2;
+            let button1 = document.getElementById('test1');
+            let out = document.getElementsByClassName('output');
+            let drawing = true;
+
+            let dt = 10;
+            let dudes = new Population(POPULATION);
+            dudes.config.mutfn = 'parents';
+            dudes.setInitSpecies(() => {
+                let d = new Dude(Ox, Oy);
+                d.canvasSize = {x: width, y: height};
+                return d;
+            });
+            dudes.setUpdatefn(function() {
+                let q = new Quad(width, height, 0, 0);
+                food.pieces.forEach(f => {
+                    q.addItem(f.p, f);
+                });
+                this.pops.forEach(dude => {
+                    dude.update();
+                    let nearby = q.query(dude.p.x, dude.p.y, 90);
+
+                    nearby.forEach(n => {
+                        if (food.checkOne(n.data, dude.p.copy(), true)) {
+                            q.removeItem(n);
+                            dude.eat();
+                        }
+                        dude.sensors.forEach(sensor => {
+                            sensor.use(n.data.p);
+                        });
+                    });
+                });
+                for (let i = this.pops.length - 1; i >= 0; i--) {
+                    if (this.pops[i].life <= 0) {
+                        this.pops[i].remove();
+                        this.saved.push(this.pops.splice(i, 1)[0]);
+                    }
+                }
+                q.clear();
+                if (this.pops.length < 1) {
+                    this.newGen();
+                    return;
+                }
+            });
+            dudes.init();
+            let selectedDude = dudes.pops[0];
+            createClicks = () => {
+                dudes.pops.forEach((x, i) => {
+                    x.body.head.shape.addEventListener('click', () => {
+                        if (dudes.pops.indexOf(selectedDude) >= 0) {
+                            dudes.pops[dudes.pops.indexOf(selectedDude)].body.head.set('borderColor', 'white');
+                        }
+                        selectedDude = x;
+                        reinitOv();
+                    });
+                });
+            };
+            let ov = new nnOverlay(dudes.pops[dudes.pops.indexOf(selectedDude)].brain);
+            dudes.pops[dudes.pops.indexOf(selectedDude)].body.head.shape.style.borderColor = 'blue';
+            ov.init();
+
+            reinitOv = () => {
+                ov.destroy();
+                if (dudes.pops.indexOf(selectedDude) >= 0) {
+                    ov = new nnOverlay(dudes.pops[dudes.pops.indexOf(selectedDude)].brain);
+                    dudes.pops[dudes.pops.indexOf(selectedDude)].body.head.set('borderColor', 'blue');
+                    console.log('selected' + dudes.pops.indexOf(selectedDude));
+                    ov.init();
+                }
+            };
+            createClicks();
+            let food = new Food(FOOD);
+            food.canvasSize = {x: width, y: height};
+            food.init();
+            dudes.onNewGen(() => {
+                food.reinit();
+                createClicks();
+                reinitOv();
+            });
+
+            let time,
+                time2,
+                diff,
+                avgtime = 0;
+            let timelog = [];
+            getAvgTime = n => {
+                timelog.push(n);
+                if (timelog.length > 50) {
+                    timelog.splice(0, 1);
+                }
+                return timelog.reduce((tot, x) => tot + x) / timelog.length;
+            };
+            update = () => {
+                time = window.performance.now();
+                dudes.update(food);
+                ov.draw();
+
+                out[0].innerHTML = 'Gen: ' + dudes.gencount;
+                out[1].innerHTML = 'points: ' + Math.floor(dudes.pops.length ? dudes.pointaverage : 0);
+                out[2].innerHTML = 'dudes left: ' + (dudes.pops.length ? dudes.pops.length : 0);
+                out[3].innerHTML = 'fps: ' + avgtime; //+ Math.floor((1 / avgtime) * 100);
+                time2 = window.performance.now();
+                diff = time2 - time;
+
+                avgtime = getAvgTime(diff);
+            };
+            draw = () => {
+                dudes.draw();
+            };
+
+            //main loop
+            let maindraw = setInterval(draw, dt);
+            let mainloop = setInterval(update, dt);
+
+            button1.addEventListener('click', () => {
+                if (drawing) {
+                    clearInterval(maindraw);
+                    clearInterval(mainloop);
+                } else {
+                    maindraw = setInterval(draw, dt);
+                    mainloop = setInterval(update, dt);
+                }
+                drawing = !drawing;
+            });
+        </script>
+    </body>
+</html>

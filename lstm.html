@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta content="text/html;charset=utf-8" http-equiv="Content-Type" />
+        <meta content="utf-8" http-equiv="encoding" />
+        <script src="lib/matrix.js"></script>
+        <script src="lib/nn.js"></script>
+        <script src="lib/drawbase.js"></script>
+    </head>
+    <body>
+        <button id="download" type="button">download</button>
+        <button id="start" type="button">start</button>
+        <button id="restart" type="button">restart</button>
+        <br />
+        <label for="word"><input type="text" id="word" placeholder="new word to learn"/></label>
+        <button id="submit" type="button">use sentence (lowercase)</button>
+
+        <br />
+        <label for="input"><input type="text" id="input" placeholder="text to predict"/></label>
+        <p id="prediction">text</p>
+        <p id="info1">text</p>
+        <p id="info2">text</p>
+        <p id="info3">text</p>
+        <p id="info4">text</p>
+        <a id="downloadAnchorElem" style="display:none"></a>
+        <script>
+            const ASYNC = false; //much slower tho
+
+            let inputword = 'abcdefghijklmnopqrstuvwxyz';
+
+            let input = id('input');
+            let newwordinput = id('word');
+            let prediction = id('prediction');
+            let info1 = id('info1');
+            let info2 = id('info2');
+            let info3 = id('info3');
+            let info4 = id('info4');
+            id('submit').addEventListener('click', () => {
+                if (newwordinput.value === undefined || newwordinput.value.length < 2) {
+                    return;
+                }
+                inputword = newwordinput.value;
+                newwordinput.value = '';
+                id('submit').innerText = 'ok';
+                inititateAll();
+                setTimeout(() => (id('submit').innerText = 'use sentence'), 1500);
+            });
+            id('download').addEventListener('click', () => {
+                download(brain, inputword + '_lstm.json');
+            });
+            id('restart').addEventListener('click', () => {
+                inititateAll();
+                trainings = 0;
+                lim = 95;
+            });
+            let running = false;
+            let startBtn = id('start');
+            startBtn.addEventListener('click', () => {
+                if (!running) {
+                    start();
+                } else {
+                    stop();
+                }
+            });
+            start = () => {
+                mainloop = setInterval(loop, 10);
+                startBtn.innerText = 'pause';
+                running = true;
+            };
+            stop = () => {
+                clearInterval(mainloop);
+                startBtn.innerText = 'start';
+                running = false;
+            };
+
+            // let brain = new NeuralNetwork(8);
+            // brain.addLayer(16, 'tanh', 'recurrent').config.type_args = [2,8];
+
+            // brain.setLearningRate(0.03);
+            // brain.init();
+            let brain;
+            inititateAll = () => {
+                brain = new NeuralNetwork(27);
+                brain.addLayer(90, 'lstm', {weights_start: 'calculated'});
+                brain.addLayer(27, 'dense', {activation_fn: 'softmax'}, true);
+                brain.setSequenceTrain(inputword.length);
+                brain.setLearningRate(0.3);
+                brain.init();
+            };
+            let alphabet = 'abcdefghijklmnopqrstuvwxyz ';
+            let2arr = l => {
+                let n = alphabet.indexOf(l);
+                let arr = Array(alphabet.length).fill(0);
+                if (n !== -1) {
+                    arr[n] = 1;
+                }
+                return arr;
+            };
+            arr2let = arr => {
+                let n = arr.indexOf(1);
+                return alphabet[n] || ' ';
+            };
+
+            argMax = arr => {
+                //not actual argMax fn
+                let max = arr.reduce((a, b) => Math.max(a, b));
+
+                return arr.map(x => (x === max ? 1 : 0));
+            };
+
+            let count = 0;
+
+            let trainingfn = function(inp) {
+                if (inp) {
+                    count = inp;
+                }
+                let x = inputword[count];
+                let y = inputword[count + 1];
+                if (!y) {
+                    y = ' ';
+                }
+                if (!x) {
+                    x = ' ';
+                }
+                count++;
+                if (count > inputword.length - 1) {
+                    count = 0;
+                }
+                let xarr = let2arr(x);
+                let yarr = let2arr(y);
+                return {input: xarr, output: yarr};
+            };
+
+            let input_batch = [];
+            let target_batch = [];
+
+            genData = () => {
+                for (let i = 0; i < word.length - 1; i++) {
+                    let d = trainingfn();
+
+                    input_batch.push(d.input);
+                    target_batch.push(d.output);
+                }
+                return 'ok';
+            };
+            data = c => {
+                let d = trainingfn();
+                if (c) {
+                    return arr2let(d.input) + ' | ' + arr2let(d.output);
+                }
+                return d.input + ' | ' + d.output;
+            };
+            let trainings = 0;
+
+            function train(n) {
+                if (n < 1) n = 10;
+                let counter = 0;
+
+                for (let i = 0; i < n; i++) {
+                    let d = trainingfn();
+                    brain.train(d.input, d.output);
+                    counter++;
+                    trainings++;
+                    totaltrainings++;
+                }
+            }
+
+            async function asynctrain(n) {
+                if (n < 1) n = 10;
+                let counter = 0;
+                return new Promise(resolve => {
+                    for (let i = 0; i < n; i++) {
+                        let d = trainingfn();
+                        brain.asynctrain(d.input, d.output).then(() => {
+                            counter++;
+                            trainings++;
+                        });
+
+                        if (counter >= n) resolve(counter);
+                    }
+                });
+            }
+
+            async function testAcc(n) {
+                let acc = 0;
+                let num = n;
+                let count = 0;
+                return new Promise(resolve => {
+                    for (let i = 0; i < n; i++) {
+                        let d = trainingfn();
+                        //console.log(arr2let(d.output));
+                        asyncpredict(d.input).then(x => {
+                            if (x === arr2let(d.output)) {
+                                if (arr2let(d.input) === ' ') {
+                                    n++;
+                                } else if (arr2let(d.output) === ' ') {
+                                    n++;
+                                } else {
+                                    acc++;
+                                }
+                            }
+                            count++;
+                        });
+
+                        if (count >= n - 1) resolve(Math.round((acc / num) * 100 * 100) / 100);
+                    }
+                });
+            }
+
+            function testAcc(n) {
+                let acc = 0;
+                let num = n;
+                let count = 0;
+
+                for (let i = 0; i < n; i++) {
+                    let d = trainingfn();
+                    //console.log(arr2let(d.output));
+                    let out = predict(d.input);
+                    if (out === arr2let(d.output)) {
+                        if (arr2let(d.input) === ' ') {
+                            n++;
+                        } else if (arr2let(d.output) === ' ') {
+                            n++;
+                        } else {
+                            acc++;
+                        }
+                    }
+                }
+
+                return Math.round((acc / num) * 100 * 100) / 100;
+            }
+
+            async function asyncpredict(l) {
+                return new Promise(resolve => {
+                    let str = '';
+                    if (l instanceof Array) {
+                        str = brain.predict(l);
+                    } else {
+                        str = brain.predict(let2arr(l));
+                    }
+                    // console.log(str);
+                    let out = argMax(str);
+                    //console.log(out);
+                    resolve(arr2let(out));
+                });
+            }
+
+            function predict(l) {
+                let str = '';
+                if (l instanceof Array) {
+                    str = brain.predict(l);
+                } else {
+                    str = brain.predict(let2arr(l));
+                }
+                // console.log(str);
+                let out = argMax(str);
+                //console.log(out);
+                return arr2let(out);
+            }
+
+            setup = () => {};
+            let counter = 0;
+            let totaltrainings = 0;
+            let lim = 99;
+            let flip1 = false;
+            let flip2 = false;
+            let acc = 6.6;
+            let iii = 0;
+            loop = () => {
+                if (ASYNC) {
+                    asynctrain(100).then(x => {
+                        totaltrainings += x;
+                    });
+                    asynctestAcc(100).then(x => {
+                        acc = x;
+                    });
+                } else {
+                    train(100);
+                    acc = testAcc(100);
+                }
+
+                let arr = [];
+                for (let i = 0; i < inputword.length - 1; i++) {
+                    arr.push(predict(inputword[i]));
+                }
+
+                let word = arr.reduce((tot, x) => (tot += x.toString()));
+                iii++;
+
+                info1.innerText = 'Trainings: ' + trainings + ' Total Epochs: ' + Math.floor(totaltrainings / inputword.length);
+                info2.innerText = 'Accuracy: ' + acc + '%';
+                info3.innerText = 'Word: ' + word;
+
+                if (acc > 85 && !flip1) {
+                    brain.setLearningRate(0.01);
+                    flip1 = true;
+                    console.log('lowering learning rate');
+                }
+                if (acc > 95 && !flip2) {
+                    brain.setLearningRate(0.001);
+                    flip2 = true;
+                    console.log('lowering learning rate again');
+                }
+
+                if (acc > lim) {
+                    stop();
+                    lim += 5;
+                }
+                info4.innerText = 'random: ' + argMax(brain.predict(let2arr(' ')));
+            };
+
+            let praw = '';
+            let p = '';
+            let inputchanged = false;
+            let lastval = '';
+            draw = () => {
+                if (inputchanged) {
+                    p = ' ';
+                    let pnew = input.value[input.value.length - 1];
+                    if (pnew === undefined) {
+                        pnew = ' ';
+                    }
+                    pnew = brain.predict(let2arr(pnew));
+                    p = arr2let(argMax(pnew));
+
+                    inputchanged = false;
+                }
+
+                prediction.innerText = input.value + '(' + p + ')';
+                if (input.value !== lastval) {
+                    inputchanged = true;
+                }
+                lastval = input.value;
+            };
+            //main loop
+            let mainloop;
+            let drawloop;
+            inititateAll();
+            drawloop = setInterval(draw, 10);
+        </script>
+    </body>
+</html>
