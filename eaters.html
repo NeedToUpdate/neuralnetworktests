@@ -131,7 +131,7 @@
                 out[0].innerHTML = 'Gen: ' + dudes.gencount;
                 out[1].innerHTML = 'points: ' + Math.floor(dudes.pops.length ? dudes.pointaverage : 0);
                 out[2].innerHTML = 'dudes left: ' + (dudes.pops.length ? dudes.pops.length : 0);
-                out[3].innerHTML = 'fps: ' + avgtime; //+ Math.floor((1 / avgtime) * 100);
+                out[3].innerHTML = 'fps: ' + Math.floor((1 / avgtime) * 100);
                 time2 = window.performance.now();
                 diff = time2 - time;
 
