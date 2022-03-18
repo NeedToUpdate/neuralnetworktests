@@ -126,20 +126,14 @@
         </button>
     </div>
     <script>
-        let pictures = 6;
+        let pictures = 3;
         let dict = {
             0: 'fish',
             1: 'star',
             2: 'car',
-            3: 'idk',
-            4: 'idk',
-            5: 'idk',
             fish: 0,
             star: 1,
             car: 2,
-            idk: 3,
-            idk1: 4,
-            idk2: 5,
         };
         let brain;
         let training = false;
@@ -473,12 +467,27 @@
         let training_times = 0;
         let correct_times = 0;
         let last_50 = [];
-        let accNum = 50;
+        let accNum = 500;
 
         function loop() {
             let currData;
             if (training) {
                 currData = train(1);
+                brain.layers[0].weight_array.forEach((arr, i) => {
+                    let k = brain.layers[0].config.kernel_size;
+                    drawImage(
+                        draw_ctx,
+                        arr[0]
+                        .copy()
+                        .norm()
+                        .flatten()
+                        .map(val => val * 255),
+                        k,
+                        k,
+                        3,
+                        (i * (k + 1) * 3) % (draw_canvas_width - 4),
+                        (((i * (k + 1) * 3) / (draw_canvas_width - 4)) | 0) * (k + 1) * 3);
+                });
             } else {
                 currData = getData();
             }
