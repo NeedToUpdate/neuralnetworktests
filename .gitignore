@@ -1,0 +1,4 @@
+
+data/*
+!/data/convert.py
+!/data/convert_npy_to_csv.py
