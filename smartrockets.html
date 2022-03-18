@@ -1,84 +1,119 @@
 <!DOCTYPE html>
 <html lang="en">
-    <head>
-        <meta charset="UTF-8" />
-        <title>Title</title>
-        <script type="text/javascript" src="lib/vector.js"></script>
-        <script type="text/javascript" src="lib/overlay.js"></script>
-        <script type="text/javascript" src="lib/matrix.js"></script>
-        <script type="text/javascript" src="lib/nn.js"></script>
-        <script type="text/javascript" src="lib/rocket.js"></script>
-        <script type="text/javascript" src="lib/food.js"></script>
-        <script type="text/javascript" src="lib/population.js"></script>
-        <script type="text/javascript" src="lib/quad.js"></script>
-        <script type="text/javascript" src="lib/rect.js"></script>
-        <script type="text/javascript" src="lib/div.js"></script>
-    </head>
-    <body style="height: 100%; width: 100%; overflow: hidden">
-        <div id="background" style="height:110%; width:110%;background:black;top:-10%;left:-10%;position:absolute"></div>
-        <script type="text/javascript">
-            function rand(min, max) {
-                return Math.floor(Math.random() * (max - min) + min);
-            }
 
-            let width = window.innerWidth;
-            let height = window.innerHeight;
-            let Ox = Math.floor(width / 2);
-            let Oy = height - 10;
-            let dt = 10;
-            let boxes = [];
-            let target = new Rect(rand(10, width - 10), rand(10, 400), 10, 10, true);
-            target.rect.style.backgroundColor = 'green';
-            for (let i = 0; i < 8; i++) {
-                let y = Math.random() < 0.7 ? 10 : rand(50, height / 4);
-                let x = y === 10 ? rand(50, width / 3) : 10;
-                let box = new Rect(rand(10, width - 10), rand(10, height - 100), x, y, true);
-                boxes.push(box);
-            }
+<head>
+    <meta charset="UTF-8" />
+    <title>Title</title>
+    <script type="text/javascript"
+        src="lib/vector.js"></script>
+    <script type="text/javascript"
+        src="lib/overlay.js"></script>
+    <script type="text/javascript"
+        src="lib/matrix.js"></script>
+    <script type="text/javascript"
+        src="lib/nn.js"></script>
+    <script type="text/javascript"
+        src="lib/rocket.js"></script>
+    <script type="text/javascript"
+        src="lib/food.js"></script>
+    <script type="text/javascript"
+        src="lib/population.js"></script>
+    <script type="text/javascript"
+        src="lib/quad.js"></script>
+    <script type="text/javascript"
+        src="lib/rect.js"></script>
+    <script type="text/javascript"
+        src="lib/div.js"></script>
+</head>
 
-            let r = new Population(40);
-            r.config.mutfn = 'clonewithnew';
-            r.setInitSpecies(() => {
-                let rocket = new Rocket(Ox, Oy);
-                rocket.canvasSize = {x: width, y: height};
-                return rocket;
-            });
-            r.setUpdatefn(function() {
-                for (let i = this.pops.length - 1; i >= 0; i--) {
-                    let r = this.pops[i];
-                    r.update();
-                    if (r.exploded) {
-                        this.saved.push(this.pops.splice(i, 1)[0]);
-                    }
+<body style="height: 100%; width: 100%; overflow: hidden">
+    <div id="background"
+        style="height:110%; width:110%;background:black;top:-10%;left:-10%;position:absolute"></div>
+    <script type="text/javascript">
+        function rand(min, max) {
+            return Math.floor(Math.random() * (max - min) + min);
+        }
+
+        let width = window.innerWidth;
+        let height = window.innerHeight;
+        let Ox = Math.floor(width / 2);
+        let Oy = height - 10;
+        let dt = 10;
+        let boxes = [];
+        let target = new Rect(rand(10, width - 10), rand(10, height / 3), 10, 10, true);
+        target.rect.style.backgroundColor = 'green';
+        for (let i = 0; i < 8; i++) {
+            let boxHeight = Math.random() < 0.7 ? 10 : rand(50, height / 4);
+            let boxWidth = boxHeight === 10 ? rand(50, width / 3) : 10;
+            let x = rand(10, width - 10)
+            let y = 0;
+
+            function inMiddleThird(x) {
+                return x > width / 3 && x < width / 1.5
+            }
+            if (inMiddleThird(x) || inMiddleThird(x + boxWidth)) {
+                y = rand(10, height / 2)
+            } else {
+                y = rand(10, height - 10)
+            }
+            let box = new Rect(x, y, boxWidth, boxHeight, true);
+            console.log(box)
+            box.rect.style.backgroundColor = 'black'
+            boxes.push(box);
+        }
+
+        let r = new Population(40);
+        r.config = {
+            mutRate: 0.05,
+            mutAmount: 0.05,
+            mutfn: "clonewithnew",
+        };
+        r.setInitSpecies(() => {
+            let rocket = new Rocket(Ox, Oy);
+            rocket.canvasSize = {
+                x: width,
+                y: height
+            };
+            return rocket;
+        });
+        r.setUpdatefn(function () {
+            for (let i = this.pops.length - 1; i >= 0; i--) {
+                let r = this.pops[i];
+                r.update();
+                if (r.exploded) {
+                    this.saved.push(this.pops.splice(i, 1)[0]);
                 }
-                if (this.pops.length < 1) {
-                    this.newGen();
-                }
-            });
-            r.init();
+            }
+            if (this.pops.length < 1) {
+                this.newGen();
+            }
+        });
+        r.init();
+        r.pops.forEach(x => {
+            x.assignBounds(boxes);
+            x.setTarget(target);
+        });
+
+        let ov = new nnOverlay(r.pops.at(-1).brain);
+        ov.init();
+        r.onNewGen(() => {
+            ov.destroy();
+            ov = new nnOverlay(r.pops.at(-1).brain);
+            ov.init();
             r.pops.forEach(x => {
                 x.assignBounds(boxes);
                 x.setTarget(target);
             });
+        });
 
-            let ov = new nnOverlay(r.pops[0].brain);
-            ov.init();
-            r.onNewGen(() => {
-                ov.destroy();
-                ov = new nnOverlay(r.pops[0].brain);
-                ov.init();
-                r.pops.forEach(x => {
-                    x.assignBounds(boxes);
-                    x.setTarget(target);
-                });
-            });
+        loop = () => {
+            r.update();
+            ov.draw();
+        };
 
-            loop = () => {
-                r.update();
-                ov.draw();
-            };
+        let mainloop = setInterval(loop, dt);
 
-            let mainloop = setInterval(loop, dt);
-        </script>
-    </body>
+    </script>
+</body>
+
 </html>
