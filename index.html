@@ -8,43 +8,247 @@
     <meta name="viewport"
         content="width=device-width, initial-scale=1.0">
     <title>Artem's Neural Net Fun</title>
+    <link rel="preconnect"
+        href="https://fonts.googleapis.com">
+    <link rel="preconnect"
+        href="https://fonts.gstatic.com"
+        crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Fredoka:wght@300;400&display=swap"
+        rel="stylesheet">
 </head>
 
 <body>
-    <h1>
-        Neural Network Tests
-    </h1>
-    <p class="main-description">All of these projects are made with just one library. It has no dependencies, other than self-written matrix and vector libraries. The drawing is all done by a rather simple div manipulation library, that was
-        improved heavily with this future project</p>
-    <div class="option-box">
-        <h4 class="subheading">solving MNIST with a simple dense NN</h4>
-        <p class="explanation">This uses a model with 3 dense layers with sigmoid activation functions.</p>
+    <div class="title-box">
+
+        <h1 class="title">
+            Neural Network Tests
+        </h1>
+        <p class="description">All of these projects are made with just <a href="./lib/nn.js">one self-written library</a>. It has no dependencies, other than self-written <a href="./lib/matrix.js">matrix</a> and <a
+                href="./lib/vector.js">vector</a> libraries. The drawing is all done by a rather
+            simple self-wrotten div manipulation library, that was improved heavily with <a href="https://needtoupdate.github.io/testgames">this future project</a>. The project began with <a
+                href="https://www.youtube.com/watch?v=9zfeTw-uFCw">this video from the Coding Train</a>. I used this project as my entry to learning javascript in general, as I found this whole idea fascinating, and it pushed me to learn
+            more. After about two weeks (almost non-stop), and learning a ton of new math, I had coded out (from scratch) a basic NN, RNN, LSTM, and a basic CNN with all the back propagation code. It was a really fun learning experience,
+            and since then my skills have improved much more, you can see more projects at my new site (CURRENTLY WIP, nowhere near done), <a href="https://icandoathing.com/">icandoathing.com</a></p>
     </div>
-    <div class="option-box">
-        <h4 class="subheading">solving MNIST with a CNN</h4>
-        <p class="explanation">This model uses 2 convolution layers with relu and maxpools, fololwed by one dense layer. Much more effective than the nn above</p>
-    </div>
-    <div class="option-box">
-        <h4 class="subheading">Predicting a single word with a simple RNN</h4>
-        <p class="explanation">This model has a single reccurent layer, followed by a dense layer. It can learn one word basically.</p>
-    </div>
-    <div class="option-box">
-        <h4 class="subheading">Learning a whole alphabet with a LSTM</h4>
-        <p class="explanation">This model now uses a single LSTM layer to achieve learning much longer words and sentences than the model above.</p>
-    </div>
-    <div class="option-box">
-        <h4 class="subheading">word2vec trials</h4>
-        <p class="explanation">Using a simple dense layer, creates an encoder function. With 3 sentences, you can see the words grouping together with thei xy position or colour</p>
-    </div>
-    <div class="option-box">
-        <h4 class="subheading">Eaters with crossover mutations</h4>
-        <p class="explanation">The little dudes all have a simple 2 dense layer brain. Once they all die from hunger, the two best dudes have their brains mixed together, and become the parents of the next generation.</p>
-    </div>
-    <div class="option-box">
-        <h4 class="subheading">Smart Rockets</h4>
-        <p class="explanation">This was a an attempt to copy <a>this project</a>, after seeing it on Coding Train. The rockets can't see the target, they only know thier own speed, x and y position, and how much fuel they have left. Once
-            they all die, the fittest gets cloned and mutated.</p>
+    <div class="links">
+
+        <div class="option-box"
+            onclick="window.location='/eaters.html'">
+            <h4 class="subheading">Genetic Algorithms - Eaters with crossover mutations</h4>
+            <p class="explanation">The little dudes all have a simple 2 dense layer brain. Once they all die from hunger, the two best dudes have their brains mixed together, and become the parents of the next generation.</p>
+            <div class="image-container"><img class="side-image cover"
+                    src="./images/eaters.png"
+                    alt=""></div>
+        </div>
+        <div class="option-box"
+            onclick="window.location='/smartrockets.html'">
+            <h4 class="subheading">Genetic Algorithms - Smart Rockets</h4>
+            <p class="explanation">This was a inspired by <a href="https://shivank1006.github.io/Smart-Rockets/">this project</a>, after seeing it on <a href="https://www.youtube.com/watch?v=bGz7mv2vD6g">Coding Train</a>. I already had all
+                the brain code, so strapping a rocket to it couldn't hurt. The rockets have basic rocket physics, as in, they need to fight gravity, and can only turn using side boosters, they can't simply rotate themselves. The rockets
+                can't see the target, they only know thier own speed, x and y
+                position, and how much fuel they have left. Once they all die, the fittest gets cloned and mutated.</p>
+            <div class="image-container">
+                <img class="side-image cover"
+                    src="./images/smart_rockets.png"
+                    alt="">
+            </div>
+        </div>
+        <div class="option-box large"
+            onclick="window.location='https\://needtoupdate.github.io/EvoWorld'">
+            <h4 class="subheading">Genetic Algorithms - Little Worms</h4>
+            <p class="explanation">This was a much more ambitious version of the eaters above, each worm has a unique DNA, which determines how many eyes they have, what senses they have (like feeling for food with their body), what they
+                can do, e.g walk foreward/turn/see/eat, and what their brain is like, how many nodes, layers, activation functions etc. They can get fat from eating more than they can handle, which lets them live longer. Nothing in the
+                classes is hard-coded, e.g. their eyes are just an Appendage() class with a use()
+                function.) The idea was later on I could add arms, legs, wings, etc. But I got distracted with other projects and forgot about this one. perhaps I'll revisit it later and add more features.</p>
+            <div class="image-container">
+                <img class="side-image cover"
+                    src="./images/worms.png"
+                    alt="">
+            </div>
+        </div>
+        <div class="option-box"
+            onclick="window.location='/mnist_with_nn.html'">
+            <h4 class="subheading">Solving MNIST with a simple dense NN</h4>
+            <p class="explanation">This uses a model with 3 dense layers with sigmoid activation functions. It reached about a 70% accuracy after a few thousand trainings. Click the 'load trained model' at the top and draw a number on the
+                right canvas. Click guess and see if the model got it right. You can also download or upload a .json of the model (but its in my format used by the library) and also upload csv files of the data using the same button.</p>
+            <div class="image-container">
+                <img class="side-image"
+                    src="./images/mnist_nn.png"
+                    alt="">
+            </div>
+        </div>
+        <div class="option-box"
+            onclick="window.location='/mnist_with_cnn.html'">
+            <h4 class="subheading">Solving MNIST with a CNN</h4>
+            <p class="explanation">This model uses 2 convolution layers with relu and maxpools, fololwed by one dense layer. Much more effective than the nn above, as it reaches a 92% accuracy on the testing data. It can probably reach a
+                much higher accuracy, but this training isnt very fast and kind of pointless, so this is the accuracy only after a couple thousand trainging cycles, not even one epoch. Same controls as above, if you want to try it out.</p>
+            <div class="image-container">
+                <img class="side-image"
+                    src="./images/mnist_cnn.png"
+                    alt="">
+            </div>
+        </div>
+        <div class="option-box"
+            onclick="window.location='/word_learner.html'">
+            <h4 class="subheading">Predicting a single word with a simple RNN</h4>
+            <p class="explanation">This model has a single reccurent layer, followed by a dense layer. It can learn one word basically. Type a word in the fist box, click 'use word', then hit start to start training. Training will
+                automatically stop when accuracy hits 100%. Then try typing in the second box, the model's prediction will be in the parentheses</p>
+            <div class="image-container">
+                <img class="side-image"
+                    src="./images/rnn.png"
+                    alt="">
+            </div>
+        </div>
+        <div class="option-box"
+            onclick="window.location='/lstm.html'">
+            <h4 class="subheading">Learning a whole alphabet with an LSTM</h4>
+            <p class="explanation">This model now uses a single LSTM layer to achieve learning much longer words and sentences than the model above.</p>
+            <div class="image-container">
+                <img class="side-image"
+                    src="./images/lstm.png"
+                    alt="">
+            </div>
+        </div>
+        <div class="option-box"
+            onclick="window.location='/word2vecattempt.html'">
+            <h4 class="subheading">word2vec trials</h4>
+            <p class="explanation">Using a simple dense layer, creates an encoder function. With 3 sentences, you can see the words grouping together with thei xy position or colour</p>
+        </div>
     </div>
 </body>
+<style>
+    * {
+        font-family: 'Fredoka', sans-serif;
+        box-sizing: border-box;
+    }
+
+    body {
+        background-color: rgb(244, 255, 244)
+    }
+
+    .title {
+        color: hsl(120, 100%, 30%);
+        text-transform: uppercase;
+        font-weight: 100;
+        padding-left: 1rem;
+
+    }
+
+    .title-box {
+        border-radius: 3px;
+        padding: 4px;
+        box-shadow: rgba(0, 0, 0, 0.1) 5px 5px 15px, rgba(0, 0, 0, .3) 1px 1px 2px;
+        transition: all 0.1s ease-in-out;
+        margin-bottom: 1rem;
+        background-color: white;
+    }
+
+    .description {
+        color: hsl(120, 100%, 20%);
+        padding-left: 10px;
+    }
+
+    .links {
+        display: flex;
+        flex-wrap: wrap;
+    }
+
+    .option-box {
+        display: grid;
+        grid-template-areas: "title pic""explanation pic";
+        grid-template-columns: auto 200px;
+        grid-template-rows: 30px auto;
+        flex-grow: 1;
+        border-left: solid hsl(120, 100%, 30%) 2px;
+        border-radius: 3px;
+        margin: 3px;
+        box-shadow: rgba(0, 0, 0, 0.1) 5px 5px 15px, rgba(0, 0, 0, .3) 1px 1px 2px;
+        transition: all 0.1s ease-in-out;
+
+        height: 185px;
+        background-color: white;
+    }
+
+    .large {
+        height: 240px;
+    }
+
+    .option-box:hover {
+        transform: translate(-1px, -1px);
+        cursor: pointer;
+    }
+
+    .option-box:active {
+        transform: translate(1px, 1px);
+    }
+
+    .subheading {
+        grid-area: title;
+        margin: 0;
+        padding: 3px;
+        padding-left: 1rem;
+        font-size: 1.2rem;
+        font-weight: bolder;
+        color: black;
+        border-bottom: hsl(120, 100%, 30%) 1px solid;
+    }
+
+    .explanation {
+        grid-area: explanation;
+        padding-left: 10px;
+        color: black;
+    }
+
+    .image-container {
+        grid-area: pic;
+        width: 200px;
+        height: 100%;
+        overflow: hidden;
+        border-left: hsl(120, 100%, 20%) 2px solid;
+    }
+
+    .side-image {
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+    }
+
+    .cover {
+        object-fit: cover;
+    }
+
+    @media screen and (max-width: 768px) {
+        .option-box {
+            grid-template-areas: "title pic""explanation explanation";
+            grid-template-rows: 150px auto;
+            grid-template-columns: 50% 50%;
+            flex-grow: 1;
+            border-left: solid hsl(120, 100%, 30%) 2px;
+            border-radius: 3px;
+            margin: 3px;
+            box-shadow: rgba(0, 0, 0, 0.1) 5px 5px 15px, rgba(0, 0, 0, .3) 1px 1px 2px;
+            transition: all 0.1s ease-in-out;
+            height: fit-content;
+            height: 350px;
+            background-color: white;
+
+        }
+
+        .image-container {
+            width: 100%;
+        }
+
+        .large {
+            height: 440px;
+        }
+
+        .subheading {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+    }
+
+</style>
 
 </html>
