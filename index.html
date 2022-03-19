@@ -112,7 +112,25 @@
         <div class="option-box"
             onclick="window.location='/word2vecattempt.html'">
             <h4 class="subheading">word2vec trials</h4>
-            <p class="explanation">Using a simple dense layer, creates an encoder function. With 3 sentences, you can see the words grouping together with thei xy position or colour</p>
+            <p class="explanation">This is a simple test after learning about word2vec and how it works. Using a simple dense layer, creates an encoder function. It takes the sentences in the textarea, and runs them through. I then train it
+                once, and take the weight values out of the middle layer. It creates a 5 dimentional vector, represented with x,y position, and h,s,l for colour (its easier to see similarities than rgb). It creates some interesting patterns
+                pretty fast, like having similar words be on the same axis, or of the same shade.</p>
+            <div class="image-container">
+                <img class="side-image"
+                    src="./images/word2vec.png"
+                    alt="">
+            </div>
+        </div>
+        <div class="option-box"
+            onclick="window.location='/cnn_quickdraw.html'">
+            <h4 class="subheading">CNN to detect Google's quickdraw doodles</h4>
+            <p class="explanation">This uses a similar approach as the MNIST CNN above, but to detect one of 3 images, a car, a star or a fish. It can do more, but requires more training which is slow, and is unnecessary as this is just a
+                simple proof-of-concept test. It achieves pretty good accuracy after 15000 trainings, or 1/2 of an epoch of the training data I used. Same controls as the other drawing models.</p>
+            <div class="image-container">
+                <img class="side-image"
+                    src="./images/cnn.png"
+                    alt="">
+            </div>
         </div>
     </div>
 </body>
