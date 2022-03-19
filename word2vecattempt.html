@@ -4,35 +4,73 @@
 <head>
     <meta charset="UTF-8" />
     <title>word2vec, kinda</title>
-    <script type="text/javascript" src="lib/vector.js"></script>
-    <script type="text/javascript" src="lib/matrix.js"></script>
-    <script type="text/javascript" src="lib/nn.js"></script>
-    <script type="text/javascript" src="lib/div.js"></script>
-    <script type="text/javascript" src="lib/drawbase.js"></script>
+    <script type="text/javascript"
+        src="lib/vector.js"></script>
+    <script type="text/javascript"
+        src="lib/matrix.js"></script>
+    <script type="text/javascript"
+        src="lib/nn.js"></script>
+    <script type="text/javascript"
+        src="lib/div.js"></script>
+    <script type="text/javascript"
+        src="lib/drawbase.js"></script>
 </head>
 
-<body style="height: 100%; width: 100%; overflow: hidden">
-    <div id="bg"
-        style="z-index:0; position:absolute; top:-10px; left:-10px;height:110%; width:110%; background-color:black;">
+<body style="background-color:black; overflow: hidden;">
+
+    <div class="input"
+        style="position: absolute; top: 0; left: 0;">
+        <textarea name="input"
+            id="input"
+            cols="30"
+            rows="10">the fast monkey is brown
+the slow turtle is green
+the monkey is fast and brown
+the turtle is slow and green </textarea>
+        <button id="go">go</button>
     </div>
-    <p id="text1">sent</p>
     <script type="text/javascript">
         let height = window.innerHeight;
         let width = window.innerWidth;
 
-        let words = `
-        the fast monkey is brown
-        the slow turtle is green 
-        the monkey is fast and brown 
-        the turtle is slow and green  
-        
-
-
-
-        `;
+        let words = '';
 
         let dict = {};
         let wordcount = 0;
+        let mainloop = 0
+        let running = false
+        let brain = {}
+        id('go').addEventListener('click', () => {
+            if (running) {
+                id('go').innerText = 'go'
+                clearInterval(mainloop)
+                running = false
+            } else {
+                running = true
+
+                words = id('input').value
+                data = prepare(words);
+
+                createBrain()
+                requestAnimationFrame(draw)
+                id('go').innerText = 'stop'
+                mainloop = setInterval(draw, 17)
+            }
+        })
+
+        function createBrain() {
+            if (Object.keys(brain).length > 0) return
+            brain = new NeuralNetwork(wordcount);
+            brain.addLayer(5, "dense", { //x, y , h, s, v
+                activation_fn: "linear"
+            });
+
+            brain.addLayer(wordcount, "dense", {
+                activation_fn: "softmax"
+            });
+            brain.config.loss_fn = "cross_entropy";
+            brain.init();
+        }
 
         function prepare(data) {
             let ws = 3;
@@ -87,7 +125,7 @@
 
         let p = new P("Loss: ", 10, 20);
 
-        let data = prepare(words);
+        let data = []
 
         let count = 0;
 
@@ -122,16 +160,7 @@
             return arr.indexOf(arr.reduce((a, b) => Math.max(a, b)));
         }
 
-        let brain = new NeuralNetwork(wordcount);
-        brain.addLayer(5, "dense", {
-            activation_fn: "linear"
-        });
 
-        brain.addLayer(wordcount, "dense", {
-            activation_fn: "softmax"
-        });
-        brain.config.loss_fn = "cross_entropy";
-        brain.init();
 
         function train() {
             let d = getData();
@@ -141,7 +170,8 @@
         }
 
         let ps = [];
-        draw = () => {
+
+        function draw() {
             ps.forEach(p => {
                 p.remove();
             });
@@ -170,16 +200,28 @@
                 let x = p[0] * (width - 40);
                 let y = p[1] * (height - 130) + 100;
                 let w = new P(key, x, y);
+                w.shape.style.fontSize = "2rem"
                 w.shape.style.color =
-                    "rgb(" +
-                    p[2] * 255 +
+                    "hsl(" +
+                    p[2] * 360 +
                     "," +
-                    p[3] * 255 +
+                    p[3] * 100 +
+                    "%," +
+                    p[4] * 100 +
+                    "%)";
+                w.shape.style.textShadow =
+                    "hsl(" +
+                    p[2] * 360 +
                     "," +
-                    p[4] * 255 +
-                    ")";
+                    p[3] * 100 +
+                    "%," +
+                    (100 - (p[4] * 100)) +
+                    "%) 0px 0px 2px";
                 ps.push(w);
             });
+            // if (running) {
+            //     requestAnimationFrame(draw)
+            // }
         };
 
         function normalize(n, min, max) {
@@ -215,9 +257,6 @@
             return array.sort(() => Math.random() - 0.5);
         }
 
-        function getColor(num) {}
-
-        setInterval(draw, 10);
     </script>
 </body>
 
