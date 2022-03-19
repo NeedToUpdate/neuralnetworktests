@@ -33,7 +33,7 @@
     <div class="links">
 
         <div class="option-box"
-            onclick="window.location='/eaters.html'">
+            onclick="window.location='./eaters.html'">
             <h4 class="subheading">Genetic Algorithms - Eaters with crossover mutations</h4>
             <p class="explanation">The little dudes all have a simple 2 dense layer brain. Once they all die from hunger, the two best dudes have their brains mixed together, and become the parents of the next generation.</p>
             <div class="image-container"><img class="side-image cover"
@@ -41,7 +41,7 @@
                     alt=""></div>
         </div>
         <div class="option-box"
-            onclick="window.location='/smartrockets.html'">
+            onclick="window.location='./smartrockets.html'">
             <h4 class="subheading">Genetic Algorithms - Smart Rockets</h4>
             <p class="explanation">This was a inspired by <a href="https://shivank1006.github.io/Smart-Rockets/">this project</a>, after seeing it on <a href="https://www.youtube.com/watch?v=bGz7mv2vD6g">Coding Train</a>. I already had all
                 the brain code, so strapping a rocket to it couldn't hurt. The rockets have basic rocket physics, as in, they need to fight gravity, and can only turn using side boosters, they can't simply rotate themselves. The rockets
@@ -67,7 +67,7 @@
             </div>
         </div>
         <div class="option-box"
-            onclick="window.location='/mnist_with_nn.html'">
+            onclick="window.location='./mnist_with_nn.html'">
             <h4 class="subheading">Solving MNIST with a simple dense NN</h4>
             <p class="explanation">This uses a model with 3 dense layers with sigmoid activation functions. It reached about a 70% accuracy after a few thousand trainings. Click the 'load trained model' at the top and draw a number on the
                 right canvas. Click guess and see if the model got it right. You can also download or upload a .json of the model (but its in my format used by the library) and also upload csv files of the data using the same button.</p>
@@ -78,7 +78,7 @@
             </div>
         </div>
         <div class="option-box"
-            onclick="window.location='/mnist_with_cnn.html'">
+            onclick="window.location='./mnist_with_cnn.html'">
             <h4 class="subheading">Solving MNIST with a CNN</h4>
             <p class="explanation">This model uses 2 convolution layers with relu and maxpools, fololwed by one dense layer. Much more effective than the nn above, as it reaches a 92% accuracy on the testing data. It can probably reach a
                 much higher accuracy, but this training isnt very fast and kind of pointless, so this is the accuracy only after a couple thousand trainging cycles, not even one epoch. Same controls as above, if you want to try it out.</p>
@@ -89,7 +89,7 @@
             </div>
         </div>
         <div class="option-box"
-            onclick="window.location='/word_learner.html'">
+            onclick="window.location='./word_learner.html'">
             <h4 class="subheading">Predicting a single word with a simple RNN</h4>
             <p class="explanation">This model has a single reccurent layer, followed by a dense layer. It can learn one word basically. Type a word in the fist box, click 'use word', then hit start to start training. Training will
                 automatically stop when accuracy hits 100%. Then try typing in the second box, the model's prediction will be in the parentheses</p>
@@ -100,7 +100,7 @@
             </div>
         </div>
         <div class="option-box"
-            onclick="window.location='/lstm.html'">
+            onclick="window.location='./lstm.html'">
             <h4 class="subheading">Learning a whole alphabet with an LSTM</h4>
             <p class="explanation">This model now uses a single LSTM layer to achieve learning much longer words and sentences than the model above.</p>
             <div class="image-container">
@@ -110,7 +110,7 @@
             </div>
         </div>
         <div class="option-box large"
-            onclick="window.location='/word2vecattempt.html'">
+            onclick="window.location='./word2vecattempt.html'">
             <h4 class="subheading">word2vec trials</h4>
             <p class="explanation">This is a simple test after learning about word2vec and how it works. Using a simple dense layer, creates an encoder function. It takes the sentences in the textarea, and runs them through. I then train it
                 once, and take the weight values out of the middle layer. It creates a 5 dimentional vector, represented with x,y position, and h,s,l for colour (its easier to see similarities than rgb). It creates some interesting patterns
@@ -122,7 +122,7 @@
             </div>
         </div>
         <div class="option-box"
-            onclick="window.location='/cnn_quickdraw.html'">
+            onclick="window.location='./cnn_quickdraw.html'">
             <h4 class="subheading">CNN to detect Google's quickdraw doodles</h4>
             <p class="explanation">This uses a similar approach as the MNIST CNN above, but to detect one of 3 images, a car, a star or a fish. It can do more, but requires more training which is slow, and is unnecessary as this is just a
                 simple proof-of-concept test. It achieves pretty good accuracy after 15000 trainings, or 1/2 of an epoch of the training data I used. Same controls as the other drawing models.</p>
