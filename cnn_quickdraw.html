@@ -73,6 +73,8 @@
         type="button">restart</button>
     <button id="train"
         type="button">training: off</button>
+    <button id="load_model"
+        type="button">load trained model</button>
     <br />
     <br />
     <div class="container"
@@ -186,6 +188,17 @@
             });
             return nums;
         }
+        id('load_model').addEventListener('click', async () => {
+            console.log('fetching file..')
+            let file = await fetch('./sorta trained model/quickdraw_cnn.json');
+            let json = await file.text();
+            console.log('loading json...');
+            brain = NeuralNetwork.fromJSON(json);
+            id('peek_info').innerText =
+                'Peek into the hidden layer, darker values means larger weights. (0-' + (brain.layers[0].num_of_outputs - 1) + ')';
+            console.log('nn ready');
+
+        })
 
         function start() {
             MAINLOOP = setInterval(loop, 1000 / FPS);

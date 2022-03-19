@@ -1,457 +1,530 @@
 <!DOCTYPE html>
 <html>
-    <head>
-        <meta content="text/html;charset=utf-8" http-equiv="Content-Type" />
-        <meta content="utf-8" http-equiv="encoding" />
-        <title>mnist learning</title>
-        <script src="lib/matrix.js"></script>
-        <script src="lib/nn.js"></script>
-        <script src="lib/drawbase.js"></script>
 
-        <style>
-            #canvas {
-                border: black solid 2px;
-                height: 112px;
-                width: 112px;
-            }
-            button {
-                z-index: 100;
-            }
-            #training_data {
-                top: 60px;
-                left: 10px;
-                z-index: 0;
-            }
+<head>
+    <meta content="text/html;charset=utf-8"
+        http-equiv="Content-Type" />
+    <meta content="utf-8"
+        http-equiv="encoding" />
+    <title>mnist learning</title>
+    <script src="lib/matrix.js"></script>
+    <script src="lib/nn.js"></script>
+    <script src="lib/drawbase.js"></script>
 
-            #draw_area {
-                top: 60px;
-                left: 300px;
-                z-index: 10;
-            }
+    <style>
+        #canvas {
+            border: black solid 2px;
+            height: 112px;
+            width: 112px;
+        }
 
-            #draw_canvas {
-                height: 112px;
-                width: 112px;
-                border: solid black 2px;
-                display: block;
-                align-self: center;
-                left: 42px;
-                position: relative;
-            }
+        button {
+            z-index: 100;
+        }
 
-            #draw_canvas:hover {
-                cursor: pointer;
-            }
+        #training_data {
+            top: 60px;
+            left: 10px;
+            z-index: 0;
+        }
 
-            .container {
-                height: 600px;
-                width: 200px;
-                text-align: center;
-                padding: 10px;
-                display: table;
-                position: absolute;
-            }
-        </style>
-    </head>
-    <body>
-        <input type="file" id="choose" />
-        <button id="loaddata" type="button">upload</button>
-        <button id="download" type="button">download</button>
-        <button id="start" type="button">start</button>
-        <button id="restart" type="button">restart</button>
-        <button id="train" type="button">training: off</button>
+        #draw_area {
+            top: 60px;
+            left: 300px;
+            z-index: 10;
+        }
+
+        #draw_canvas {
+            height: 112px;
+            width: 112px;
+            border: solid black 2px;
+            display: block;
+            align-self: center;
+            left: 42px;
+            position: relative;
+        }
+
+        #draw_canvas:hover {
+            cursor: pointer;
+        }
+
+        .container {
+            height: 600px;
+            width: 200px;
+            text-align: center;
+            padding: 10px;
+            display: table;
+            position: absolute;
+        }
+
+    </style>
+</head>
+
+<body>
+    <input type="file"
+        id="choose" />
+    <button id="loaddata"
+        type="button">upload</button>
+    <button id="download"
+        type="button">download</button>
+    <button id="start"
+        type="button">start</button>
+    <button id="restart"
+        type="button">restart</button>
+    <button id="train"
+        type="button">training: off</button>
+    <button id="load_model"
+        type="button">load trained model</button>
+    <br />
+    <div class="container"
+        id="training_data">
+        <h4>Train:</h4>
+        <canvas height="112"
+            width="112"
+            id="canvas"></canvas>
+        <h5>Target Data:</h5>
+        <p id="info1">Label:</p>
+        <p id="info2">Array:</p>
+        <h5>Guess Data:</h5>
+        <p id="info3">Prarr:</p>
+        <p id="info4">Prlab:</p>
+        <p id="info5">Error:</p>
+        <p id="info6">Error:</p>
+        <p id="info7">Error:</p>
+    </div>
+    <div class="container"
+        id="draw_area">
+        <h4>Draw:</h4>
+        <canvas height="112"
+            width="112"
+            id="draw_canvas"></canvas>
+        <label for="brush_stroke">brush size:</label><input type="range"
+            min="1"
+            max="12"
+            value="6"
+            id="brush_stroke" />
         <br />
-        <div class="container" id="training_data">
-            <h4>Train:</h4>
-            <canvas height="112" width="112" id="canvas"></canvas>
-            <h5>Target Data:</h5>
-            <p id="info1">Label:</p>
-            <p id="info2">Array:</p>
-            <h5>Guess Data:</h5>
-            <p id="info3">Prarr:</p>
-            <p id="info4">Prlab:</p>
-            <p id="info5">Error:</p>
-            <p id="info6">Error:</p>
-            <p id="info7">Error:</p>
-        </div>
-        <div class="container" id="draw_area">
-            <h4>Draw:</h4>
-            <canvas height="112" width="112" id="draw_canvas"></canvas>
-            <label for="brush_stroke">brush size:</label><input type="range" min="1" max="12" value="6" id="brush_stroke" />
-            <br/>
-            <button id="input_prediction" type="button" style="margin: auto">
-                guess
-            </button>
-            <button id="clear_prediction" type="button" style="margin: auto">
-                clear
-            </button>
-            <p>guess:</p>
-            <h1 id="prediction_text" style="font-size: 3em; color: blue">?</h1>
-            <h6 id="peek_info">
-                peek into the feature maps
-            </h6>
-            <button id="peek_button" type="button" style="margin: auto">
-                peek
-            </button>
-        </div>
-        <script>
-            let brain;
-            function drawImage(ctx, data, w, h, pixelsize, startx, starty) {
-                let upscale = pixelsize || 4;
-                let ww = (w ? w : 28) * upscale;
-                let hh = (h ? h : 28) * upscale;
-                let pixels = ctx.createImageData(ww, hh);
-                let count = 0 - ww * 4 * (upscale - 1);
-                data.forEach((pixel, i) => {
-                    if (i % (ww / upscale) === 0) count += ww * 4 * (upscale - 1);
-                    let pixel_index_array = [];
-                    for (let k = 0; k < upscale; k++) {
-                        pixel_index_array.push(ww * 4 * k + i * 4 * upscale + count);
-                    }
-                    for (let j = 0; j < 4 * upscale; j++) {
-                        pixel_index_array.forEach(index => {
-                            pixels.data[index + j] = 255 - pixel;
-                            if ((j + 1) % 4 === 0) {
-                                pixels.data[index + j] = 255;
-                            }
-                        });
-                    }
-                });
-                ctx.putImageData(pixels, startx || 0, starty || 0);
-            }
-            
-            function loadCSV(csv) {
-                let lines = csv.split('\n');
-                let arrays = lines.map(x => {
-                    return x.split(',');
-                });
-                let nums = [];
-                arrays.forEach(arr => {
-                    let n = {};
-                    n.label = arr.splice(0, 1)[0];
-                    n.pixels = arr;
-                    nums.push(n);
-                });
-                return nums;
-            }
+        <button id="input_prediction"
+            type="button"
+            style="margin: auto">
+            guess
+        </button>
+        <button id="clear_prediction"
+            type="button"
+            style="margin: auto">
+            clear
+        </button>
+        <p>guess:</p>
+        <h1 id="prediction_text"
+            style="font-size: 3em; color: blue">?</h1>
+        <h6 id="peek_info">
+            peek into the feature maps
+        </h6>
+        <button id="peek_button"
+            type="button"
+            style="margin: auto">
+            peek
+        </button>
+    </div>
+    <script>
+        let brain;
 
-            let canvas = id('canvas');
-            let training = false;
-            id('train').addEventListener('click', () => {
-                training = !training;
-                if (training) {
-                    id('train').innerText = 'Training: on';
-                } else {
-                    id('train').innerText = 'Training: off';
+        function drawImage(ctx, data, w, h, pixelsize, startx, starty) {
+            let upscale = pixelsize || 4;
+            let ww = (w ? w : 28) * upscale;
+            let hh = (h ? h : 28) * upscale;
+            let pixels = ctx.createImageData(ww, hh);
+            let count = 0 - ww * 4 * (upscale - 1);
+            data.forEach((pixel, i) => {
+                if (i % (ww / upscale) === 0) count += ww * 4 * (upscale - 1);
+                let pixel_index_array = [];
+                for (let k = 0; k < upscale; k++) {
+                    pixel_index_array.push(ww * 4 * k + i * 4 * upscale + count);
                 }
-            });
-            let input = id('choose');
-            id('loaddata').addEventListener('click', () => {
-                if (input.files[0]) {
-                    if (/[.csv]$/.test(input.files[0].name)) {
-                        console.log('loading...');
-                        let reader = new FileReader();
-                        reader.readAsText(input.files[0]);
-                        reader.onload = () => {
-                            somedata = loadCSV(reader.result);
-                            console.log('csv loaded');
-                        };
-                    } else if (/[.json]$/.test(input.files[0].name)) {
-                        console.log('loading json...');
-                        let reader = new FileReader();
-                        reader.readAsText(input.files[0]);
-                        reader.onload = () => {
-                            brain = NeuralNetwork.fromJSON(reader.result);
-                            console.log('nn ready');
-                        };
-                    } else {
-                        console.error('unknown file');
-                    }
-                }
-            });
-            let info1 = id('info1');
-            let info2 = id('info2');
-            let info3 = id('info3');
-            let info4 = id('info4');
-            let info5 = id('info5');
-            let info6 = id('info6');
-            let info7 = id('info7');
-            let ctx = canvas.getContext('2d');
-            let somedata = '';
-            id('download').addEventListener('click', () => {
-                download(brain, 'mnist_classifier.json');
-            });
-            id('restart').addEventListener('click', () => {
-                initAll();
-                trainings = 0;
-                lim = 95;
-            });
-            id('start').addEventListener('click', () => {
-                if (!LOOPING) {
-                    start();
-                } else {
-                    stop();
-                }
-            });
-            start = () => {
-                MAINLOOP = setInterval(loop, 1000 / FPS);
-                id('start').innerText = 'pause';
-                LOOPING = true;
-            };
-            stop = () => {
-                clearInterval(MAINLOOP);
-                id('start').innerText = 'start';
-                LOOPING = false;
-            };
-
-            function enumerate(n) {
-                n = parseInt(n);
-                if (n < 0 || n > 9) {
-                    return 0;
-                }
-                return Array(10)
-                    .fill(0)
-                    .map((x, i) => {
-                        if (n === i) {
-                            return 1;
-                        } else {
-                            return 0;
+                for (let j = 0; j < 4 * upscale; j++) {
+                    pixel_index_array.forEach(index => {
+                        pixels.data[index + j] = 255 - pixel;
+                        if ((j + 1) % 4 === 0) {
+                            pixels.data[index + j] = 255;
                         }
                     });
-            }
+                }
+            });
+            ctx.putImageData(pixels, startx || 0, starty || 0);
+        }
 
-            function denumerate(arr) {
-                if (arr instanceof Array) {
-                    return argMax(arr);
+        function loadCSV(csv) {
+            let lines = csv.split('\n');
+            let arrays = lines.map(x => {
+                return x.split(',');
+            });
+            let nums = [];
+            arrays.forEach(arr => {
+                let n = {};
+                n.label = arr.splice(0, 1)[0];
+                n.pixels = arr;
+                nums.push(n);
+            });
+            return nums;
+        }
+
+        let canvas = id('canvas');
+        let training = false;
+        id('train').addEventListener('click', () => {
+            training = !training;
+            if (training) {
+                id('train').innerText = 'Training: on';
+            } else {
+                id('train').innerText = 'Training: off';
+            }
+        });
+        let input = id('choose');
+        id('loaddata').addEventListener('click', () => {
+            if (input.files[0]) {
+                if (/[.csv]$/.test(input.files[0].name)) {
+                    console.log('loading...');
+                    let reader = new FileReader();
+                    reader.readAsText(input.files[0]);
+                    reader.onload = () => {
+                        somedata = loadCSV(reader.result);
+                        console.log('csv loaded');
+                    };
+                } else if (/[.json]$/.test(input.files[0].name)) {
+                    console.log('loading json...');
+                    let reader = new FileReader();
+                    reader.readAsText(input.files[0]);
+                    reader.onload = () => {
+                        brain = NeuralNetwork.fromJSON(reader.result);
+                        console.log('nn ready');
+                    };
+                } else {
+                    console.error('unknown file');
                 }
             }
+        });
 
-            function argMax(arr) {
-                return arr.indexOf(arr.reduce((a, b) => Math.max(a, b)));
+        id('load_model').addEventListener('click', async () => {
+            console.log('fetching file..')
+            let file = await fetch('./sorta trained model/mnist_trained_cnn.json');
+            let json = await file.text();
+            console.log('loading json...');
+            brain = NeuralNetwork.fromJSON(json);
+            id('peek_info').innerText =
+                'Peek into the hidden layer, darker values means larger weights. (0-' + (brain.layers[0].num_of_outputs - 1) + ')';
+            console.log('nn ready');
+
+        })
+        let info1 = id('info1');
+        let info2 = id('info2');
+        let info3 = id('info3');
+        let info4 = id('info4');
+        let info5 = id('info5');
+        let info6 = id('info6');
+        let info7 = id('info7');
+        let ctx = canvas.getContext('2d');
+        let somedata = '';
+        id('download').addEventListener('click', () => {
+            download(brain, 'mnist_classifier.json');
+        });
+        id('restart').addEventListener('click', () => {
+            initAll();
+            trainings = 0;
+            lim = 95;
+        });
+        id('start').addEventListener('click', () => {
+            if (!LOOPING) {
+                start();
+            } else {
+                stop();
             }
+        });
+        start = () => {
+            MAINLOOP = setInterval(loop, 1000 / FPS);
+            id('start').innerText = 'pause';
+            LOOPING = true;
+        };
+        stop = () => {
+            clearInterval(MAINLOOP);
+            id('start').innerText = 'start';
+            LOOPING = false;
+        };
 
-            //draw on the canvas
-            let brush_size = 8;
-            let draw_canvas_width = 112;
-            let draw_canvas = id('draw_canvas');
+        function enumerate(n) {
+            n = parseInt(n);
+            if (n < 0 || n > 9) {
+                return 0;
+            }
+            return Array(10)
+                .fill(0)
+                .map((x, i) => {
+                    if (n === i) {
+                        return 1;
+                    } else {
+                        return 0;
+                    }
+                });
+        }
 
-            let painting = false;
-            let draw_ctx = draw_canvas.getContext('2d');
-            let draw_img_data = draw_ctx.getImageData(0, 0, draw_canvas_width, draw_canvas_width);
-            let clear_data = draw_ctx.getImageData(0, 0, draw_canvas_width, draw_canvas_width);
-            draw_canvas.addEventListener('mousedown', () => {
-                // console.log('down');
-                // painting_id = setInterval(paintbrush,10);
-                painting = true;
-                draw_ctx = draw_canvas.getContext('2d');
-                draw_img_data = draw_ctx.getImageData(0, 0, 112, 112);
-            });
-            draw_canvas.addEventListener('mouseup', () => {
-                //console.log('up');
+        function denumerate(arr) {
+            if (arr instanceof Array) {
+                return argMax(arr);
+            }
+        }
+
+        function argMax(arr) {
+            return arr.indexOf(arr.reduce((a, b) => Math.max(a, b)));
+        }
+
+        //draw on the canvas
+        let brush_size = 8;
+        let draw_canvas_width = 112;
+        let draw_canvas = id('draw_canvas');
+
+        let painting = false;
+        let draw_ctx = draw_canvas.getContext('2d');
+        let draw_img_data = draw_ctx.getImageData(0, 0, draw_canvas_width, draw_canvas_width);
+        let clear_data = draw_ctx.getImageData(0, 0, draw_canvas_width, draw_canvas_width);
+        draw_canvas.addEventListener('mousedown', () => {
+            // console.log('down');
+            // painting_id = setInterval(paintbrush,10);
+            painting = true;
+            draw_ctx = draw_canvas.getContext('2d');
+            draw_img_data = draw_ctx.getImageData(0, 0, 112, 112);
+        });
+        draw_canvas.addEventListener('mouseup', () => {
+            //console.log('up');
+            // clearInterval(painting_id);
+            painting = false;
+            draw_ctx.putImageData(draw_img_data, 0, 0);
+        });
+        let guessBtn = id('input_prediction');
+        let clearBtn = id('clear_prediction');
+        let predictiontext = id('prediction_text');
+        guessBtn.addEventListener('click', () => {
+            let pixels = [];
+            draw_img_data = draw_ctx.getImageData(0, 0, draw_canvas_width, draw_canvas_width);
+            let scaling = draw_canvas_width / 28;
+            for (let i = 0; i < 28; i++) {
+                for (let j = 0; j < 28; j++) {
+                    if (draw_img_data.data[j * 4 * scaling + i * draw_canvas_width * scaling * 4 + 3] === 255) {
+                        pixels.push(255);
+                    } else {
+                        pixels.push(0);
+                    }
+                }
+            }
+            //console.log(pixels);
+
+            drawImage(ctx, pixels, 28, 28);
+            let guess = brain.predict([
+                [Matrix.fromArray(pixels, 28, 28)]
+            ]);
+            predictiontext.innerText = denumerate(guess);
+            let index = argMax(guess);
+            let normarray = guess.map(x => ((x * 100) | 0) / 100);
+            let lastpart = normarray.splice(index);
+            let chosen = lastpart.splice(0, 1);
+            info3.innerHTML =
+                'Array: \n' +
+                `[${normarray.length ? normarray + ',' : ''}<span style="color:blue">${chosen}</span>${lastpart.length ? ',' + lastpart : ''}]`;
+
+            info5.innerText = 'Loss: ' + brain.calc_loss();
+        });
+        clearBtn.addEventListener('click', () => {
+            draw_ctx.putImageData(clear_data, 0, 0);
+            predictiontext.innerText = '?';
+        });
+        let brush_size_slider = id('brush_stroke');
+        brush_size_slider.addEventListener('mouseup', () => {
+            brush_size = brush_size_slider.value;
+        });
+        draw_canvas.addEventListener('mousemove', e => {
+            if (painting) {
+                let left = e.clientX - (draw_canvas.offsetLeft + draw_canvas.parentElement.offsetLeft) - 2;
+                if (left < 0) left = 0;
+                if (left > draw_canvas_width) left = draw_canvas_width;
+                let top = e.clientY - (draw_canvas.offsetTop + draw_canvas.parentElement.offsetTop) - 2;
+                if (top < 0) top = 0;
+                if (top > draw_canvas_width) top = draw_canvas_width;
+                top = top | 0;
+                left = left | 0;
+
+                let pixel_index_array = [];
+                for (let k = 0; k < brush_size; k++) {
+                    pixel_index_array.push(draw_canvas_width * 4 * k + left * 4 + top * draw_canvas_width * 4);
+                }
+                for (let j = 0; j < 4 * brush_size; j++) {
+                    pixel_index_array.forEach(index => {
+                        draw_img_data.data[index + j] = 0;
+                        if ((j + 1) % 4 === 0) {
+                            draw_img_data.data[index + j] = 255;
+                        }
+                    });
+                }
+
+                draw_ctx.putImageData(draw_img_data, 0, 0);
+            }
+        });
+        draw_canvas.addEventListener('mouseleave', () => {
+            if (painting) {
+                //console.log('leave');
                 // clearInterval(painting_id);
                 painting = false;
                 draw_ctx.putImageData(draw_img_data, 0, 0);
-            });
-            let guessBtn = id('input_prediction');
-            let clearBtn = id('clear_prediction');
-            let predictiontext = id('prediction_text');
-            guessBtn.addEventListener('click', () => {
-                let pixels = [];
-                draw_img_data = draw_ctx.getImageData(0, 0, draw_canvas_width, draw_canvas_width);
-                let scaling = draw_canvas_width / 28;
-                for (let i = 0; i < 28; i++) {
-                    for (let j = 0; j < 28; j++) {
-                        if (draw_img_data.data[j * 4 * scaling + i * draw_canvas_width * scaling * 4 + 3] === 255) {
-                            pixels.push(255);
-                        } else {
-                            pixels.push(0);
-                        }
-                    }
-                }
-                //console.log(pixels);
-
-                drawImage(ctx, pixels, 28, 28);
-                let guess = brain.predict([[Matrix.fromArray(pixels, 28, 28)]]);
-                predictiontext.innerText = denumerate(guess);
-                let index = argMax(guess);
-                let normarray = guess.map(x => ((x * 100) | 0) / 100);
-                let lastpart = normarray.splice(index);
-                let chosen = lastpart.splice(0, 1);
-                info3.innerHTML =
-                    'Array: \n' +
-                    `[${normarray.length ? normarray + ',' : ''}<span style="color:blue">${chosen}</span>${lastpart.length ? ',' + lastpart : ''}]`;
-
-                info5.innerText = 'Loss: ' + brain.calc_loss();
-            });
-            clearBtn.addEventListener('click', () => {
-                draw_ctx.putImageData(clear_data, 0, 0);
-                predictiontext.innerText = '?';
-            });
-            let brush_size_slider = id('brush_stroke');
-            brush_size_slider.addEventListener('mouseup', () => {
-                brush_size = brush_size_slider.value;
-            });
-            draw_canvas.addEventListener('mousemove', e => {
-                if (painting) {
-                    let left = e.clientX - (draw_canvas.offsetLeft + draw_canvas.parentElement.offsetLeft) - 2;
-                    if (left < 0) left = 0;
-                    if (left > draw_canvas_width) left = draw_canvas_width;
-                    let top = e.clientY - (draw_canvas.offsetTop + draw_canvas.parentElement.offsetTop) - 2;
-                    if (top < 0) top = 0;
-                    if (top > draw_canvas_width) top = draw_canvas_width;
-                    top = top | 0;
-                    left = left | 0;
-
-                    let pixel_index_array = [];
-                    for (let k = 0; k < brush_size; k++) {
-                        pixel_index_array.push(draw_canvas_width * 4 * k + left * 4 + top * draw_canvas_width * 4);
-                    }
-                    for (let j = 0; j < 4 * brush_size; j++) {
-                        pixel_index_array.forEach(index => {
-                            draw_img_data.data[index + j] = 0;
-                            if ((j + 1) % 4 === 0) {
-                                draw_img_data.data[index + j] = 255;
-                            }
-                        });
-                    }
-
-                    draw_ctx.putImageData(draw_img_data, 0, 0);
-                }
-            });
-            draw_canvas.addEventListener('mouseleave', () => {
-                if (painting) {
-                    //console.log('leave');
-                    // clearInterval(painting_id);
-                    painting = false;
-                    draw_ctx.putImageData(draw_img_data, 0, 0);
-                }
-            });
-
-            //peeking function
-
-            let peekBtn = id('peek_button');
-            peekBtn.addEventListener('click', () => {
-                brain.layers[0].weight_array.forEach((arr, i) => {
-                    drawImage(
-                        ctx,
-                        arr[0]
-                            .copy()
-                            .norm()
-                            .flatten()
-                            .map(val => val * 255),
-                        5,
-                        5,
-                        3,
-                        (i * 6 * 3) % 108,
-                        (((i * 6 * 3) / 108) | 0) * 6 * 3
-                    );
-                });
-            });
-
-            function initAll() {
-                brain = new NeuralNetwork(1);
-                brain.addLayer(40, 'conv', {color_depth: 'w', kernel_size: 5, weights_start: 'calculated', biases_start: 0});
-                brain.addLayer(40, 'empty', {activation_fn: 'relu'});
-                brain.addLayer(40, 'maxpool', {
-                    color_depth: 'w',
-                    kernel_size: 2,
-                });
-                brain.addLayer(200, 'conv', {color_depth: 'w', kernel_size: 5, weights_start: 'calculated', biases_start: 0});
-                brain.addLayer(200, 'empty', {activation_fn: 'relu'});
-                brain.addLayer(200, 'maxpool', {kernel_size: 2, color_depth: 'w'});
-
-                brain.addLayer(800, 'maxpool', {
-                    color_depth: 'w',
-                    kernel_size: 2,
-                    flatten_layer: true,
-                    activation_fn: 'relu',
-                });
-                //brain.addLayer(300, 'dense', {activation_fn: 'sigmoid', weights_start: 'calculated', biases_start: 0});
-                brain.addLayer(10, 'dense', {activation_fn: 'softmax', weights_start: 'calculated', biases_start: 0});
-                brain.config.loss_fn = 'cross_entropy';
-                brain.setLearningRate(0.01);
-                brain.init();
-                }
-
-            initAll();
-
-            function predict(data) {
-                return brain.predict([[Matrix.fromArray(data, 28, 28)]]);
             }
+        });
 
-            function train(num) {
-                if (!num) {
-                    num = 1;
-                }
-                for (let i = 0; i < num; i++) {
-                    let data = getData();
-                    brain.train([[Matrix.fromArray(data.pixels.map(x => parseInt(x)), 28, 28)]], enumerate(data.label));
+        //peeking function
 
-                    training_times++;
-                }
+        let peekBtn = id('peek_button');
+        peekBtn.addEventListener('click', () => {
+            brain.layers[0].weight_array.forEach((arr, i) => {
+                drawImage(
+                    ctx,
+                    arr[0]
+                    .copy()
+                    .norm()
+                    .flatten()
+                    .map(val => val * 255),
+                    5,
+                    5,
+                    3,
+                    (i * 6 * 3) % 108,
+                    (((i * 6 * 3) / 108) | 0) * 6 * 3
+                );
+            });
+        });
+
+        function initAll() {
+            brain = new NeuralNetwork(1);
+            brain.addLayer(40, 'conv', {
+                color_depth: 'w',
+                kernel_size: 5,
+                weights_start: 'calculated',
+                biases_start: 0
+            });
+            brain.addLayer(40, 'empty', {
+                activation_fn: 'relu'
+            });
+            brain.addLayer(40, 'maxpool', {
+                color_depth: 'w',
+                kernel_size: 2,
+            });
+            brain.addLayer(200, 'conv', {
+                color_depth: 'w',
+                kernel_size: 5,
+                weights_start: 'calculated',
+                biases_start: 0
+            });
+            brain.addLayer(200, 'empty', {
+                activation_fn: 'relu'
+            });
+            brain.addLayer(200, 'maxpool', {
+                kernel_size: 2,
+                color_depth: 'w'
+            });
+
+            brain.addLayer(800, 'maxpool', {
+                color_depth: 'w',
+                kernel_size: 2,
+                flatten_layer: true,
+                activation_fn: 'relu',
+            });
+            //brain.addLayer(300, 'dense', {activation_fn: 'sigmoid', weights_start: 'calculated', biases_start: 0});
+            brain.addLayer(10, 'dense', {
+                activation_fn: 'softmax',
+                weights_start: 'calculated',
+                biases_start: 0
+            });
+            brain.config.loss_fn = 'cross_entropy';
+            brain.setLearningRate(0.01);
+            brain.init();
+        }
+
+        initAll();
+
+        function predict(data) {
+            return brain.predict([
+                [Matrix.fromArray(data, 28, 28)]
+            ]);
+        }
+
+        function train(num) {
+            if (!num) {
+                num = 1;
             }
+            for (let i = 0; i < num; i++) {
+                let data = getData();
+                brain.train([
+                    [Matrix.fromArray(data.pixels.map(x => parseInt(x)), 28, 28)]
+                ], enumerate(data.label));
 
-            function getData() {
-                //(Math.random() * (somedata.length - 1)) | 0]
-                return somedata[(Math.random() * 3) | 0];
+                training_times++;
             }
+        }
 
-            let training_times = 0;
-            let correct_times = 0;
-            let last_50 = [];
-            let accNum = 50;
+        function getData() {
+            return somedata[(Math.random() * (somedata.length - 1)) | 0]
+        }
 
-            function loop() {
-                if (training) {
-                    train(1);
-                }
-                let currData = getData();
-                let lbl = currData.label;
-                let prediction = predict(currData.pixels);
-                let pred_num = denumerate(prediction);
-                let correct = parseInt(lbl) === pred_num;
-                drawImage(ctx, currData.pixels);
-                info1.innerText = 'Label: ' + currData.label;
-                info2.innerText = 'Array:\n ' + JSON.stringify(enumerate(lbl));
-                let index = argMax(prediction);
-                let normarray = prediction.map(x => ((x * 10) | 0) / 10);
-                let lastpart = normarray.splice(index);
-                let chosen = lastpart.splice(0, 1);
-                info3.innerHTML =
-                    'Array: \n' +
-                    `[${normarray.length ? normarray + ',' : ''}<span style="color:blue">${chosen}</span>${lastpart.length ? ',' + lastpart : ''}]`;
-                info4.innerText = 'Guess: ' + pred_num;
-                info5.innerText = 'Loss: ' + brain.calc_loss();
-                info6.innerText = 'Loops: ' + training_times;
-                info7.innerText =
-                    'Correct: ' +
-                    (((last_50.reduce((tot, b) => {
-                        if (b) {
-                            return (tot += 1);
-                        } else {
-                            return tot;
-                        }
-                    }, 0) /
-                        last_50.length) *
+        let training_times = 0;
+        let correct_times = 0;
+        let last_50 = [];
+        let accNum = 50;
+
+        function loop() {
+            if (training) {
+                train(1);
+            }
+            let currData = getData();
+            let lbl = currData.label;
+            let prediction = predict(currData.pixels);
+            let pred_num = denumerate(prediction);
+            let correct = parseInt(lbl) === pred_num;
+            drawImage(ctx, currData.pixels);
+            info1.innerText = 'Label: ' + currData.label;
+            info2.innerText = 'Array:\n ' + JSON.stringify(enumerate(lbl));
+            let index = argMax(prediction);
+            let normarray = prediction.map(x => ((x * 10) | 0) / 10);
+            let lastpart = normarray.splice(index);
+            let chosen = lastpart.splice(0, 1);
+            info3.innerHTML =
+                'Array: \n' +
+                `[${normarray.length ? normarray + ',' : ''}<span style="color:blue">${chosen}</span>${lastpart.length ? ',' + lastpart : ''}]`;
+            info4.innerText = 'Guess: ' + pred_num;
+            info5.innerText = 'Loss: ' + brain.calc_loss();
+            info6.innerText = 'Loops: ' + training_times;
+            info7.innerText =
+                'Correct: ' +
+                (((last_50.reduce((tot, b) => {
+                                if (b) {
+                                    return (tot += 1);
+                                } else {
+                                    return tot;
+                                }
+                            }, 0) /
+                            last_50.length) *
                         100) |
-                        0) +
-                    '% (' +
-                    last_50.length +
-                    ')';
-                if (correct) {
-                    info4.style.color = 'green';
-                    correct_times++;
-                } else {
-                    info4.style.color = 'red';
-                }
-                last_50.push(correct);
-                if (last_50.length > accNum) {
-                    last_50.splice(0, 1);
-                    if (last_50.length - accNum > 0) {
-                        last_50.splice(0, last_50.length - accNum);
-                    }
+                    0) +
+                '% (' +
+                last_50.length +
+                ')';
+            if (correct) {
+                info4.style.color = 'green';
+                correct_times++;
+            } else {
+                info4.style.color = 'red';
+            }
+            last_50.push(correct);
+            if (last_50.length > accNum) {
+                last_50.splice(0, 1);
+                if (last_50.length - accNum > 0) {
+                    last_50.splice(0, last_50.length - accNum);
                 }
             }
-        </script>
-    </body>
+        }
+
+    </script>
+</body>
+
 </html>
