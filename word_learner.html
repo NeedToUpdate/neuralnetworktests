@@ -1,302 +1,328 @@
 <!doctype html>
 <html>
+
 <head>
-    <meta content="text/html;charset=utf-8" http-equiv="Content-Type">
-    <meta content="utf-8" http-equiv="encoding">
+    <meta content="text/html;charset=utf-8"
+        http-equiv="Content-Type">
+    <meta content="utf-8"
+        http-equiv="encoding">
     <script src="lib/matrix.js"></script>
     <script src="lib/nn.js"></script>
 </head>
+
 <body>
-<button id="download" type="button" >download</button>
-<button id="start" type="button" >start</button>
-<button id="restart" type="button" >restart</button>
-<br>
-<label for="word"><input type="text" id="word" placeholder="new word to learn"></label>
-<button id="submit" type="button" >use word</button>
+    <button id="download"
+        type="button">download</button>
+    <button id="start"
+        type="button">start</button>
+    <button id="restart"
+        type="button">restart</button>
+    <br>
+    <label for="word"><input type="text"
+            id="word"
+            style="text-transform: lowercase;"
+            placeholder="new word to learn"></label>
+    <button id="submit"
+        type="button">use word</button>
 
-<br>
-<label for="input"><input type="text" id="input" placeholder="text to predict"></label>
-<p id="prediction">text</p>
-<p id="info1">text</p>
-<p id="info2">text</p>
-<p id="info3">text</p>
-<p id="info4">text</p>
-<a id="downloadAnchorElem" style="display:none"></a>
-<script>
-    let word = 'hello  ';
-    let inputword = '';
-
-
-    let input = document.getElementById('input');
-    let newwordinput = document.getElementById('word');
-    let prediction = document.getElementById('prediction');
-    let info1 = document.getElementById('info1');
-    let info2 = document.getElementById('info2');
-    let info3 = document.getElementById('info3');
-    let info4 = document.getElementById('info4');
-    let newWordBtn = document.getElementById('submit');
-    newWordBtn.addEventListener('click',()=>{
-        if(newwordinput.value === undefined || newwordinput.value.length < 2){
-            return;
-        }
-        inputword = newwordinput.value;
-        word = newwordinput.value + '  ';
-        newwordinput.value = '';
-        newWordBtn.innerText = 'ok';
-        setTimeout(()=>newWordBtn.innerText = 'use word', 1500);
-    });
-    let downloadBtn = document.getElementById('download');
-    downloadBtn.addEventListener('click',()=>{
-        download(brain, 'hello_predictor.json');
-    });
-    let restartBtn = document.getElementById('restart');
-    restartBtn.addEventListener('click',()=>{
-        brain.init();
-        trainings = 0;
-        lim = 95;
-    });
-    let running = false;
-    let startBtn = document.getElementById('start');
-    startBtn.addEventListener('click',()=>{
-        if(!running) {
-            start();
-        }else{
-            stop();
-        }
-    });
-    start = ()=>{
-        mainloop = setInterval(loop,10);
-        startBtn.innerText = 'pause';
-        running = true;
-    };
-    stop= ()=>{
-
-        clearInterval(mainloop);
-        startBtn.innerText = 'start';
-        running = false;
-    };
-
-    let brain = new NeuralNetwork(8);
-    brain.addLayer(8, 'recurrent', {time_steps: 2, num_of_rns: 8, activation_fn: 'sigmoid'})
-    brain.addLayer(8, 'dense', {activation_fn:'crelu'}, true);
-    brain.setLearningRate(0.03);
-    brain.init();
+    <br>
+    <label for="input"><input type="text"
+            id="input"
+            style="text-transform: lowercase;"
+            placeholder="text to predict"></label>
+    <p id="prediction">text</p>
+    <p id="info1"></p>
+    <p id="info2"></p>
+    <p id="info3"></p>
+    <p id="info4"></p>
+    <a id="downloadAnchorElem"
+        style="display:none"></a>
+    <script>
+        let word = 'hello  ';
+        let inputword = '';
 
 
-    let2arr=(l)=>{
-        //console.log(l);
-        let n = l.charCodeAt(0).toString(2);
-        while(n.length<8){
-            n = '0' + n;
-        }
-        return Array.from(n).map(x=>parseInt(x));
-    };
-    arr2let=(l)=>{
-        l = l.map(x=>x.toString());
-        let str = String.fromCharCode(parseInt(l.reduce((str,x)=>str+=x.toString()),2));
-        if (str === '\u0000') str = ' ';
-        return str;
-    };
-
-    convertOutput=(arr)=>{
-        return arr.map(x=>x>0.5?1:0);
-    };
-
-
-
-
-    let count = 0;
-
-    let trainingfn = function (inp) {
-
-        if (inp) {
-            count = inp;
-        }
-
-        let x = word[count];
-        let y = word[count + 1];
-        if (!y) {
-            y = ' ';
-        }
-        if (!x) {
-            x = ' ';
-        }
-        count++;
-        if (count > word.length-1) {
-            count = 0;
-        }
-
-        if(x === ' '){
-            if(Math.random()<.5){
-                count--;
-
+        let input = document.getElementById('input');
+        let newwordinput = document.getElementById('word');
+        let prediction = document.getElementById('prediction');
+        let info1 = document.getElementById('info1');
+        let info2 = document.getElementById('info2');
+        let info3 = document.getElementById('info3');
+        let info4 = document.getElementById('info4');
+        let newWordBtn = document.getElementById('submit');
+        newWordBtn.addEventListener('click', () => {
+            if (newwordinput.value === undefined || newwordinput.value.length < 2) {
+                return;
             }
-            y = ' '
+            inputword = newwordinput.value;
+            word = newwordinput.value + '  ';
+            newwordinput.value = '';
+            newWordBtn.innerText = 'ok';
+            setTimeout(() => newWordBtn.innerText = 'use word', 1500);
+        });
+        let downloadBtn = document.getElementById('download');
+        downloadBtn.addEventListener('click', () => {
+            download(brain, 'hello_predictor.json');
+        });
+        let restartBtn = document.getElementById('restart');
+        restartBtn.addEventListener('click', () => {
+            brain.init();
+            trainings = 0;
+            lim = 95;
+        });
+        let running = false;
+        let startBtn = document.getElementById('start');
+        startBtn.addEventListener('click', () => {
+            if (!running) {
+                start();
+            } else {
+                stop();
+            }
+        });
+        start = () => {
+            mainloop = setInterval(loop, 10);
+            startBtn.innerText = 'pause';
+            running = true;
+        };
+        stop = () => {
+
+            clearInterval(mainloop);
+            startBtn.innerText = 'start';
+            running = false;
+        };
+
+        let brain = new NeuralNetwork(8);
+        brain.addLayer(8, 'recurrent', {
+            time_steps: 2,
+            num_of_rns: 8,
+            activation_fn: 'sigmoid'
+        })
+        brain.addLayer(8, 'dense', {
+            activation_fn: 'crelu'
+        }, true);
+        brain.setLearningRate(0.03);
+        brain.init();
+
+
+        let2arr = (l) => {
+            //console.log(l);
+            let n = l.charCodeAt(0).toString(2);
+            while (n.length < 8) {
+                n = '0' + n;
+            }
+            return Array.from(n).map(x => parseInt(x));
+        };
+        arr2let = (l) => {
+            l = l.map(x => x.toString());
+            let str = String.fromCharCode(parseInt(l.reduce((str, x) => str += x.toString()), 2));
+            if (str === '\u0000') str = ' ';
+            return str;
+        };
+
+        convertOutput = (arr) => {
+            return arr.map(x => x > 0.5 ? 1 : 0);
         };
 
 
-        let xarr = let2arr(x).map(x=>parseInt(x));
-        let yarr = let2arr(y).map(x=>parseInt(x));
 
 
-        return {input: xarr, output: yarr}
+        let count = 0;
 
-    };
-    data=(c)=>{
-        let d = trainingfn();
-        if(c){
-            return arr2let(d.input) +' | '+ arr2let(d.output);
-        }
-        return d.input +' | '+ d.output;
-    };
-    let trainings = 0;
-    train = (n)=>{
-        if(n<1)n=10;
+        let trainingfn = function (inp) {
 
-        for(let i = 0; i<n; i++){
+            if (inp) {
+                count = inp;
+            }
+
+            let x = word[count];
+            let y = word[count + 1];
+            if (!y) {
+                y = ' ';
+            }
+            if (!x) {
+                x = ' ';
+            }
+            count++;
+            if (count > word.length - 1) {
+                count = 0;
+            }
+
+            if (x === ' ') {
+                if (Math.random() < .5) {
+                    count--;
+
+                }
+                y = ' '
+            };
+
+
+            let xarr = let2arr(x).map(x => parseInt(x));
+            let yarr = let2arr(y).map(x => parseInt(x));
+
+
+            return {
+                input: xarr,
+                output: yarr
+            }
+
+        };
+        data = (c) => {
             let d = trainingfn();
-            brain.train( d.input, d.output);
-            trainings++;
-            totaltrainings++;
-        }
+            if (c) {
+                return arr2let(d.input) + ' | ' + arr2let(d.output);
+            }
+            return d.input + ' | ' + d.output;
+        };
+        let trainings = 0;
+        train = (n) => {
+            if (n < 1) n = 10;
 
-    };
-    testAcc=(n)=>{
+            for (let i = 0; i < n; i++) {
+                let d = trainingfn();
+                brain.train(d.input, d.output);
+                trainings++;
+                totaltrainings++;
+            }
 
-        let acc = 0;
-        let count = n;
-        for(let i = 0; i<n; i++){
-            let d = trainingfn();
-            //console.log(arr2let(d.output));
-            if(predict(d.input) === arr2let(d.output)){
+        };
+        testAcc = (n) => {
 
-                if(arr2let(d.input)===' '){
-                    n++
-                }else if( arr2let(d.output)=== ' '){
-                    n++
-                }else{
-                    acc++;
+            let acc = 0;
+            let count = n;
+            for (let i = 0; i < n; i++) {
+                let d = trainingfn();
+                //console.log(arr2let(d.output));
+                if (predict(d.input) === arr2let(d.output)) {
+
+                    if (arr2let(d.input) === ' ') {
+                        n++
+                    } else if (arr2let(d.output) === ' ') {
+                        n++
+                    } else {
+                        acc++;
+                    }
                 }
             }
-        }
-        return Math.round(((((acc)/count)*100))*100)/100;
+            return Math.round(((((acc) / count) * 100)) * 100) / 100;
 
-    };
-
-
-    predict=(l)=>{
-        let str = '';
-        if(l instanceof Array){
-            str = brain.predict(l);
-        }else{
-            str = brain.predict(let2arr(l));
-        }
-        // console.log(str);
-        let out = convertOutput(str);
-        //console.log(out);
-        return arr2let(out);
-
-    };
+        };
 
 
-
-    setup = () => {
-
-
-    };
-    let counter = 0;
-    let totaltrainings = 0;
-    let lim = 99;
-    let flip1 = false;
-    let flip2 = false;
-    loop = () => {
-
-        train(30);
-        let arr= [];
-        arr.push(predict(' '));
-        for(let i = 0; i< inputword.length-1 ;i++){
-            arr.push(predict(inputword[i]));
-        }
-
-
-
-        let word = arr.reduce((tot,x)=>tot+=x.toString());
-        let acc = testAcc(100);
-
-        info1.innerText = 'Trainings: ' + trainings + ' Total Trainings: ' + totaltrainings ;
-        info2.innerText = 'Accuracy: ' + acc + '%';
-        info3.innerText = 'Word: ' + word;
-
-        if(acc>85 && !flip1){
-            brain.setLearningRate(0.01);
-            flip1 = true;
-            console.log('lowering learning rate')
-        }
-        if(acc>95 && !flip2){
-            brain.setLearningRate(0.001);
-            flip2 = true;
-            console.log('lowering learning rate again')
-        }
-
-
-        if(acc> lim){
-            stop();
-            lim +=5;
-        }
-        if(/^\s+$/.test(word)){
-            counter++
-        }else{
-            counter = 0;
-
-        }
-        if(counter > 10){
-            brain.init();
-            trainings = 0;
-            counter = 0;
-        }
-        info4.innerText = 'random: ' + brain.predict(let2arr(' '));
-    };
-
-    let praw = '';
-    let p = '';
-    let inputchanged = false;
-    let lastval = '';
-    draw = ()=> {
-        if(inputchanged){
-            p = ' ';
-            let pnew = input.value[input.value.length-1];
-            if(pnew === undefined){
-                pnew = ' ';
+        predict = (l) => {
+            let str = '';
+            if (l instanceof Array) {
+                str = brain.predict(l);
+            } else {
+                str = brain.predict(let2arr(l));
             }
-            pnew = brain.predict(let2arr(pnew));
-            p = arr2let(convertOutput(pnew));
+            // console.log(str);
+            let out = convertOutput(str);
+            //console.log(out);
+            return arr2let(out);
 
-            inputchanged = false;
+        };
+
+
+
+        setup = () => {
+
+
+        };
+        let counter = 0;
+        let totaltrainings = 0;
+        let lim = 99;
+        let flip1 = false;
+        let flip2 = false;
+        loop = () => {
+
+            train(30);
+            let arr = [];
+            arr.push(predict(' '));
+            for (let i = 0; i < inputword.length - 1; i++) {
+                arr.push(predict(inputword[i]));
+            }
+
+
+
+            let word = arr.reduce((tot, x) => tot += x.toString());
+            let acc = testAcc(100);
+
+            info1.innerText = 'Trainings: ' + trainings + ' Total Trainings: ' + totaltrainings;
+            info2.innerText = 'Accuracy: ' + acc + '%';
+            info3.innerText = 'Word: ' + word;
+
+            if (acc > 85 && !flip1) {
+                brain.setLearningRate(0.01);
+                flip1 = true;
+                console.log('lowering learning rate')
+            }
+            if (acc > 95 && !flip2) {
+                brain.setLearningRate(0.001);
+                flip2 = true;
+                console.log('lowering learning rate again')
+            }
+
+
+            if (acc > lim) {
+                stop();
+                lim += 5;
+            }
+            if (/^\s+$/.test(word)) {
+                counter++
+            } else {
+                counter = 0;
+
+            }
+            if (counter > 10) {
+                brain.init();
+                trainings = 0;
+                counter = 0;
+            }
+            info4.innerText = 'random: ' + brain.predict(let2arr(' '));
+        };
+
+        let praw = '';
+        let p = '';
+        let inputchanged = false;
+        let lastval = '';
+        draw = () => {
+            if (inputchanged) {
+                p = ' ';
+                let pnew = input.value[input.value.length - 1];
+                if (pnew === undefined) {
+                    pnew = ' ';
+                }
+                pnew = brain.predict(let2arr(pnew));
+                p = arr2let(convertOutput(pnew));
+
+                inputchanged = false;
+            }
+
+
+
+            prediction.innerText = input.value + '(' + p + ')';
+            if (input.value !== lastval) {
+                inputchanged = true;
+            }
+            lastval = input.value;
+
+        };
+        //main loop
+        let mainloop;
+        let drawloop;
+
+        drawloop = setInterval(draw, 10);
+
+
+        function download(content, fileName, contentType) {
+            var dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(content));
+            var dlAnchorElem = document.getElementById('downloadAnchorElem');
+            dlAnchorElem.setAttribute("href", dataStr);
+            dlAnchorElem.setAttribute("download", fileName);
+            dlAnchorElem.click();
         }
 
-
-
-        prediction.innerText = input.value + '('+ p + ')';
-        if(input.value !== lastval){
-            inputchanged = true;
-        }
-        lastval = input.value;
-
-    };
-    //main loop
-    let mainloop;
-    let drawloop;
-
-    drawloop = setInterval(draw,10);
-
-
-    function download(content, fileName, contentType) {
-        var dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(content));
-        var dlAnchorElem = document.getElementById('downloadAnchorElem');
-        dlAnchorElem.setAttribute("href",     dataStr     );
-        dlAnchorElem.setAttribute("download", fileName);
-        dlAnchorElem.click();
-    }
-</script>
+    </script>
 </body>
+
 </html>
