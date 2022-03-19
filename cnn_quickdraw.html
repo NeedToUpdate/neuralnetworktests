@@ -74,7 +74,7 @@
     <button id="train"
         type="button">training: off</button>
     <button id="load_model"
-        style="background-color: lightgreen;"
+        style="background-color: lightyellow;"
         type="button">load trained model</button>
     <br />
     <br />
@@ -198,7 +198,7 @@
             id('peek_info').innerText =
                 'Peek into the hidden layer, darker values means larger weights. (0-' + (brain.layers[0].num_of_outputs - 1) + ')';
             console.log('nn ready');
-
+            id('load_model').style.backgroundColor = 'lightgreen'
         })
 
         function start() {
