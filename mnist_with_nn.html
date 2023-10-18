@@ -1,586 +1,514 @@
 <!DOCTYPE html>
 <html>
-
-<head>
-    <meta content="text/html;charset=utf-8"
-        http-equiv="Content-Type" />
-    <meta content="utf-8"
-        http-equiv="encoding" />
+  <head>
+    <meta content="text/html;charset=utf-8" http-equiv="Content-Type" />
+    <meta content="utf-8" http-equiv="encoding" />
     <title>mnist learning</title>
     <script src="lib/matrix.js"></script>
     <script src="lib/nn.js"></script>
     <script src="lib/drawbase.js"></script>
 
     <style>
-        #canvas {
-            border: black solid 2px;
-            height: 112px;
-            width: 112px;
-        }
+      #canvas {
+        border: black solid 2px;
+        height: 112px;
+        width: 112px;
+      }
 
-        button {
-            z-index: 100;
-        }
+      button {
+        z-index: 100;
+      }
 
-        #training_data {
-            top: 60px;
-            left: 10px;
-            z-index: 0;
-        }
+      #training_data {
+        top: 60px;
+        left: 10px;
+        z-index: 0;
+      }
 
-        #draw_area {
-            top: 60px;
-            left: 300px;
-            z-index: 10;
-        }
+      #draw_area {
+        top: 60px;
+        left: 300px;
+        z-index: 10;
+      }
 
-        #draw_canvas {
-            height: 112px;
-            width: 112px;
-            border: solid black 2px;
-            display: block;
-            align-self: center;
-            left: 42px;
-            position: relative;
-        }
+      #draw_canvas {
+        height: 112px;
+        width: 112px;
+        border: solid black 2px;
+        display: block;
+        align-self: center;
+        left: 42px;
+        position: relative;
+      }
 
-        #draw_canvas:hover {
-            cursor: pointer;
-        }
+      #draw_canvas:hover {
+        cursor: pointer;
+      }
 
-        .container {
-            height: 600px;
-            width: 200px;
-            text-align: center;
-            padding: 10px;
-            display: table;
-            position: absolute;
-        }
-
+      .container {
+        height: 600px;
+        width: 200px;
+        text-align: center;
+        padding: 10px;
+        display: table;
+        position: absolute;
+      }
     </style>
-</head>
+  </head>
 
-<body>
-    <input type="file"
-        id="choose" />
-    <button id="loaddata"
-        type="button">upload</button>
-    <button id="download"
-        type="button">download</button>
-    <button id="start"
-        type="button">start</button>
-    <button id="restart"
-        type="button">restart</button>
-    <button id="train"
-        type="button">training: off</button>
-    <button id="load_model"
-        style="background-color: lightyellow;"
-        type="button">load trained model</button>
+  <body>
+    <input type="file" id="choose" />
+    <button id="loaddata" type="button">upload</button>
+    <button id="download" type="button">download</button>
+    <button id="start" type="button">start</button>
+    <button id="restart" type="button">restart</button>
+    <button id="train" type="button">training: off</button>
+    <button id="load_model" style="background-color: lightyellow;" type="button">load trained model</button>
     <br />
-    <div class="container"
-        id="training_data">
-        <h4>Train:</h4>
-        <canvas height="112"
-            width="112"
-            id="canvas"></canvas>
-        <h5>Target Data:</h5>
-        <p id="info1">Label:</p>
-        <p id="info2">Array:</p>
-        <h5>Guess Data:</h5>
-        <p id="info3">Prarr:</p>
-        <p id="info4">Prlab:</p>
-        <p id="info5">Error:</p>
-        <p id="info6">Error:</p>
-        <p id="info7">Error:</p>
+    <div class="container" id="training_data">
+      <h4>Train:</h4>
+      <canvas height="112" width="112" id="canvas"></canvas>
+      <h5>Target Data:</h5>
+      <p id="info1">Label:</p>
+      <p id="info2">Array:</p>
+      <h5>Guess Data:</h5>
+      <p id="info3">Prarr:</p>
+      <p id="info4">Prlab:</p>
+      <p id="info5">Error:</p>
+      <p id="info6">Error:</p>
+      <p id="info7">Error:</p>
     </div>
-    <div class="container"
-        id="draw_area">
-        <h4>Draw:</h4>
-        <canvas height="112"
-            width="112"
-            id="draw_canvas"></canvas>
-        <label for="brush_stroke">brush size:</label><input type="range"
-            min="1"
-            max="12"
-            value="8"
-            id="brush_stroke" />
-        <button id="input_prediction"
-            type="button"
-            style="margin: auto">
-            guess
-        </button>
-        <button id="clear_prediction"
-            type="button"
-            style="margin: auto">
-            clear
-        </button>
-        <p>guess:</p>
-        <h1 id="prediction_text"
-            style="font-size: 3em; color: blue">?</h1>
-        <h6 id="peek_info">
-            Peek into the hidden layer, darker values means larger weights.
-        </h6>
-        <label for="peek_input">index:</label><input type="text"
-            id="peek_input"
-            placeholder="0"
-            value="0" />
-        <button id="peek_cycleback_button"
-            type="button"
-            style="margin: auto">
-            prev
-        </button>
-        <button id="peek_button"
-            type="button"
-            style="margin: auto">
-            submit
-        </button>
-        <button id="peek_cycle_button"
-            type="button"
-            style="margin: auto">
-            next
-        </button>
+    <div class="container" id="draw_area">
+      <h4>Draw:</h4>
+      <canvas height="112" width="112" id="draw_canvas"></canvas>
+      <label for="brush_stroke">brush size:</label><input type="range" min="1" max="12" value="8" id="brush_stroke" />
+      <button id="input_prediction" type="button" style="margin: auto;">
+        guess
+      </button>
+      <button id="clear_prediction" type="button" style="margin: auto;">
+        clear
+      </button>
+      <p>guess:</p>
+      <h1 id="prediction_text" style="font-size: 3em; color: blue;">?</h1>
+      <h6 id="peek_info">
+        Peek into the hidden layer, darker values means larger weights.
+      </h6>
+      <label for="peek_input">index:</label><input type="text" id="peek_input" placeholder="0" value="0" />
+      <button id="peek_cycleback_button" type="button" style="margin: auto;">
+        prev
+      </button>
+      <button id="peek_button" type="button" style="margin: auto;">
+        submit
+      </button>
+      <button id="peek_cycle_button" type="button" style="margin: auto;">
+        next
+      </button>
     </div>
     <script>
-        let brain;
+      let brain;
 
-        function drawImage(ctx, data, w, h, pixelsize) {
-            let upscale = pixelsize || 4;
-            let width = (w || 28) * upscale;
-            let height = (h || 28) * upscale;
-            let pixels = ctx.createImageData(width, height);
-            let count = 0 - width * 4 * (upscale - 1);
-            LOCAL = true;
-            data.forEach((pixel, i) => {
-                if (i % 28 === 0) count += width * 4 * (upscale - 1);
-                let pixel_index_array = [];
-                for (let k = 0; k < upscale; k++) {
-                    pixel_index_array.push(width * 4 * k + i * 4 * upscale + count);
-                }
-                for (let j = 0; j < 4 * upscale; j++) {
-                    pixel_index_array.forEach(index => {
-                        pixels.data[index + j] = 255 - pixel;
-                        if ((j + 1) % 4 === 0) {
-                            pixels.data[index + j] = 255;
-                        }
-                    });
-                }
+      function drawImage(ctx, data, w, h, pixelsize) {
+        let upscale = pixelsize || 4;
+        let width = (w || 28) * upscale;
+        let height = (h || 28) * upscale;
+        let pixels = ctx.createImageData(width, height);
+        let count = 0 - width * 4 * (upscale - 1);
+        LOCAL = true;
+        data.forEach((pixel, i) => {
+          if (i % 28 === 0) count += width * 4 * (upscale - 1);
+          let pixel_index_array = [];
+          for (let k = 0; k < upscale; k++) {
+            pixel_index_array.push(width * 4 * k + i * 4 * upscale + count);
+          }
+          for (let j = 0; j < 4 * upscale; j++) {
+            pixel_index_array.forEach((index) => {
+              pixels.data[index + j] = 255 - pixel;
+              if ((j + 1) % 4 === 0) {
+                pixels.data[index + j] = 255;
+              }
             });
-            ctx.putImageData(pixels, 0, 0);
+          }
+        });
+        ctx.putImageData(pixels, 0, 0);
+      }
+
+      function loadCSV(csv) {
+        let lines = csv.split("\n");
+        let arrays = lines.map((x) => {
+          return x.split(",");
+        });
+        let nums = [];
+        arrays.forEach((arr) => {
+          let n = {};
+          n.label = arr.splice(0, 1)[0];
+          n.pixels = arr;
+          nums.push(n);
+        });
+        return nums;
+      }
+      id("load_model").addEventListener("click", async () => {
+        console.log("fetching file..");
+        let file = await fetch("./sorta trained model/mnist_trained_nn.json");
+        let json = await file.text();
+        console.log("loading json...");
+        brain = NeuralNetwork.fromJSON(json);
+        id("peek_info").innerText = "Peek into the hidden layer, darker values means larger weights. (0-" + (brain.layers[0].num_of_outputs - 1) + ")";
+        console.log("nn ready");
+
+        id("load_model").style.backgroundColor = "lightgreen";
+      });
+
+      let canvas = id("canvas");
+      let training = false;
+      id("train").addEventListener("click", () => {
+        training = !training;
+        if (training) {
+          id("train").innerText = "Training: on";
+        } else {
+          id("train").innerText = "Training: off";
         }
-
-        function loadCSV(csv) {
-            let lines = csv.split('\n');
-            let arrays = lines.map(x => {
-                return x.split(',');
-            });
-            let nums = [];
-            arrays.forEach(arr => {
-                let n = {};
-                n.label = arr.splice(0, 1)[0];
-                n.pixels = arr;
-                nums.push(n);
-            });
-            return nums;
+      });
+      let input = id("choose");
+      id("loaddata").addEventListener("click", () => {
+        if (input.files[0]) {
+          if (/[.csv]$/.test(input.files[0].name)) {
+            console.log("loading...");
+            let reader = new FileReader();
+            reader.readAsText(input.files[0]);
+            reader.onload = () => {
+              somedata = loadCSV(reader.result);
+              console.log("csv loaded");
+            };
+          } else if (/[.json]$/.test(input.files[0].name)) {
+            console.log("loading json...");
+            let reader = new FileReader();
+            reader.readAsText(input.files[0]);
+            reader.onload = () => {
+              brain = NeuralNetwork.fromJSON(reader.result);
+              id("peek_info").innerText = "Peek into the hidden layer, darker values means larger weights. (0-" + (brain.layers[0].num_of_outputs - 1) + ")";
+              console.log("nn ready");
+            };
+          } else {
+            console.error("unknown file");
+          }
         }
-        id('load_model').addEventListener('click', async () => {
-            console.log('fetching file..')
-            let file = await fetch('./sorta trained model/mnist_trained_nn.json');
-            let json = await file.text();
-            console.log('loading json...');
-            brain = NeuralNetwork.fromJSON(json);
-            id('peek_info').innerText =
-                'Peek into the hidden layer, darker values means larger weights. (0-' + (brain.layers[0].num_of_outputs - 1) + ')';
-            console.log('nn ready');
+      });
+      let info1 = id("info1");
+      let info2 = id("info2");
+      let info3 = id("info3");
+      let info4 = id("info4");
+      let info5 = id("info5");
+      let info6 = id("info6");
+      let info7 = id("info7");
+      let ctx = canvas.getContext("2d");
 
-            id('load_model').style.backgroundColor = 'lightgreen'
-        })
-
-
-        let canvas = id('canvas');
-        let training = false;
-        id('train').addEventListener('click', () => {
-            training = !training;
-            if (training) {
-                id('train').innerText = 'Training: on';
-            } else {
-                id('train').innerText = 'Training: off';
-            }
-        });
-        let input = id('choose');
-        id('loaddata').addEventListener('click', () => {
-            if (input.files[0]) {
-                if (/[.csv]$/.test(input.files[0].name)) {
-                    console.log('loading...');
-                    let reader = new FileReader();
-                    reader.readAsText(input.files[0]);
-                    reader.onload = () => {
-                        somedata = loadCSV(reader.result);
-                        console.log('csv loaded');
-                    };
-                } else if (/[.json]$/.test(input.files[0].name)) {
-                    console.log('loading json...');
-                    let reader = new FileReader();
-                    reader.readAsText(input.files[0]);
-                    reader.onload = () => {
-                        brain = NeuralNetwork.fromJSON(reader.result);
-                        id('peek_info').innerText =
-                            'Peek into the hidden layer, darker values means larger weights. (0-' + (brain.layers[0].num_of_outputs - 1) + ')';
-                        console.log('nn ready');
-                    };
-                } else {
-                    console.error('unknown file');
-                }
-            }
-        });
-        let info1 = id('info1');
-        let info2 = id('info2');
-        let info3 = id('info3');
-        let info4 = id('info4');
-        let info5 = id('info5');
-        let info6 = id('info6');
-        let info7 = id('info7');
-        let ctx = canvas.getContext('2d');
-        let somedata = '';
-        id('download').addEventListener('click', () => {
-            download(brain, 'mnist_classifier.json');
-        });
-        id('restart').addEventListener('click', () => {
-            initAll();
-            trainings = 0;
-            lim = 95;
-        });
-        id('start').addEventListener('click', () => {
-            if (!LOOPING) {
-                start();
-            } else {
-                stop();
-            }
-        });
-        start = () => {
-            MAINLOOP = setInterval(loop, 1000 / FPS);
-            id('start').innerText = 'pause';
-            LOOPING = true;
-        };
-        stop = () => {
-            clearInterval(MAINLOOP);
-            id('start').innerText = 'start';
-            LOOPING = false;
-        };
-        draw_canvas.addEventListener('touchend', e => {
-            draw_ctx.putImageData(draw_img_data, 0, 0);
-        });
-        draw_canvas.addEventListener('touchmove', e => {
-            e.preventDefault(); // we don't want to scroll
-            draw_ctx = draw_canvas.getContext('2d');
-            draw_img_data = draw_ctx.getImageData(0, 0, draw_canvas_width, draw_canvas_width);
-            let touch = e.touches[0];
-            let left = touch.clientX - (draw_canvas.offsetLeft + draw_canvas.parentElement.offsetLeft) - 2;
-            if (left < 0) left = 0;
-            if (left > draw_canvas_width) left = draw_canvas_width;
-            let top = touch.clientY - (draw_canvas.offsetTop + draw_canvas.parentElement.offsetTop) - 2;
-            if (top < 0) top = 0;
-            if (top > draw_canvas_width) top = draw_canvas_width;
-            top = top | 0;
-            left = left | 0;
-
-            let pixel_index_array = [];
-            for (let k = 0; k < brush_size; k++) {
-                pixel_index_array.push(draw_canvas_width * 4 * k + left * 4 + top * draw_canvas_width * 4);
-            }
-            for (let j = 0; j < 4 * brush_size; j++) {
-                pixel_index_array.forEach(index => {
-                    draw_img_data.data[index + j] = 0;
-                    if ((j + 1) % 4 === 0) {
-                        draw_img_data.data[index + j] = 255;
-                    }
-                });
-            }
-
-            draw_ctx.putImageData(draw_img_data, 0, 0);
-        });
-
-        function enumerate(n) {
-            n = parseInt(n);
-            if (n < 0 || n > 9) {
-                return 0;
-            }
-            return Array(10)
-                .fill(0)
-                .map((x, i) => {
-                    if (n === i) {
-                        return 1;
-                    } else {
-                        return 0;
-                    }
-                });
-        }
-
-        function denumerate(arr) {
-            if (arr instanceof Array) {
-                return argMax(arr);
-            }
-        }
-
-        function argMax(arr) {
-            return arr.indexOf(arr.reduce((a, b) => Math.max(a, b)));
-        }
-
-        //draw on the canvas
-        let brush_size = 8;
-        let draw_canvas_width = 112;
-        let draw_canvas = id('draw_canvas');
-
-        let painting = false;
-        let draw_ctx = draw_canvas.getContext('2d');
-        let draw_img_data = draw_ctx.getImageData(0, 0, draw_canvas_width, draw_canvas_width);
-        let clear_data = draw_ctx.getImageData(0, 0, draw_canvas_width, draw_canvas_width);
-        draw_canvas.addEventListener('mousedown', () => {
-            // console.log('down');
-            // painting_id = setInterval(paintbrush,10);
-            painting = true;
-            draw_ctx = draw_canvas.getContext('2d');
-            draw_img_data = draw_ctx.getImageData(0, 0, 112, 112);
-        });
-        draw_canvas.addEventListener('mouseup', () => {
-            // console.log('up');
-            // clearInterval(painting_id);
-            painting = false;
-            draw_ctx.putImageData(draw_img_data, 0, 0);
-        });
-        let guessBtn = id('input_prediction');
-        let clearBtn = id('clear_prediction');
-        let predictiontext = id('prediction_text');
-        guessBtn.addEventListener('click', () => {
-            let pixels = [];
-            draw_img_data = draw_ctx.getImageData(0, 0, draw_canvas_width, draw_canvas_width);
-            let scaling = draw_canvas_width / 28;
-            for (let i = 0; i < 28; i++) {
-                for (let j = 0; j < 28; j++) {
-                    if (draw_img_data.data[j * 4 * scaling + i * draw_canvas_width * scaling * 4 + 3] === 255) {
-                        pixels.push(255);
-                    } else {
-                        pixels.push(0);
-                    }
-                }
-            }
-            //console.log(pixels);
-
-            drawImage(ctx, pixels);
-            let prediction = brain.predict(pixels);
-            predictiontext.innerText = denumerate(prediction);
-            let index = argMax(prediction);
-            let normarray = prediction.map(x => ((x * 10) | 0) / 10);
-            let lastpart = normarray.splice(index);
-            let chosen = lastpart.splice(0, 1);
-            info3.innerHTML =
-                'Array: \n' +
-                `[${normarray.length ? normarray + ',' : ''}<span style="color:blue">${chosen}</span>${lastpart.length ? ',' + lastpart : ''}]`;
-            info4.innerText = 'Guess: ' + denumerate(prediction);
-            info5.innerText = 'Loss: ' + brain.calc_loss();
-        });
-        clearBtn.addEventListener('click', () => {
-            draw_ctx.putImageData(clear_data, 0, 0);
-            predictiontext.innerText = '?';
-        });
-        let brush_size_slider = id('brush_stroke');
-        brush_size_slider.addEventListener('mouseup', () => {
-            brush_size = brush_size_slider.value;
-        });
-        draw_canvas.addEventListener('touchend', e => {
-            draw_ctx.putImageData(draw_img_data, 0, 0);
-        });
-        draw_canvas.addEventListener('touchmove', e => {
-            e.preventDefault(); // we don't want to scroll
-            draw_ctx = draw_canvas.getContext('2d');
-            draw_img_data = draw_ctx.getImageData(0, 0, 112, 112);
-            let touch = e.touches[0];
-            let left = touch.clientX - (draw_canvas.offsetLeft + draw_canvas.parentElement.offsetLeft) - 2;
-            if (left < 0) left = 0;
-            if (left > draw_canvas_width) left = draw_canvas_width;
-            let top = touch.clientY - (draw_canvas.offsetTop + draw_canvas.parentElement.offsetTop) - 2;
-            if (top < 0) top = 0;
-            if (top > draw_canvas_width) top = draw_canvas_width;
-            top = top | 0;
-            left = left | 0;
-
-            let pixel_index_array = [];
-            for (let k = 0; k < brush_size; k++) {
-                pixel_index_array.push(draw_canvas_width * 4 * k + left * 4 + top * draw_canvas_width * 4);
-            }
-            for (let j = 0; j < 4 * brush_size; j++) {
-                pixel_index_array.forEach(index => {
-                    draw_img_data.data[index + j] = 0;
-                    if ((j + 1) % 4 === 0) {
-                        draw_img_data.data[index + j] = 255;
-                    }
-                });
-            }
-
-            draw_ctx.putImageData(draw_img_data, 0, 0);
-        });
-        draw_canvas.addEventListener('mousemove', e => {
-            if (painting) {
-                let left = e.clientX - (draw_canvas.offsetLeft + draw_canvas.parentElement.offsetLeft) - 2;
-                if (left < 0) left = 0;
-                if (left > draw_canvas_width) left = draw_canvas_width;
-                let top = e.clientY - (draw_canvas.offsetTop + draw_canvas.parentElement.offsetTop) - 2;
-                if (top < 0) top = 0;
-                if (top > draw_canvas_width) top = draw_canvas_width;
-                top = top | 0;
-                left = left | 0;
-
-                let pixel_index_array = [];
-                for (let k = 0; k < brush_size; k++) {
-                    pixel_index_array.push(draw_canvas_width * 4 * k + left * 4 + top * draw_canvas_width * 4);
-                }
-                for (let j = 0; j < 4 * brush_size; j++) {
-                    pixel_index_array.forEach(index => {
-                        draw_img_data.data[index + j] = 0;
-                        if ((j + 1) % 4 === 0) {
-                            draw_img_data.data[index + j] = 255;
-                        }
-                    });
-                }
-
-                draw_ctx.putImageData(draw_img_data, 0, 0);
-            }
-        });
-        draw_canvas.addEventListener('mouseleave', () => {
-            if (painting) {
-                //console.log('leave');
-                // clearInterval(painting_id);
-                painting = false;
-                draw_ctx.putImageData(draw_img_data, 0, 0);
-            }
-        });
-
-        //peeking function
-
-        let peekBtn = id('peek_button');
-        let peekcycleBtn = id('peek_cycle_button');
-        let peekcyclebackBtn = id('peek_cycleback_button');
-        peekBtn.addEventListener('click', () => {
-            drawImage(
-                ctx,
-                brain.layers[0].weight_array[0][0].values[id('peek_input').value].map(val => {
-                    val += 2;
-                    return val * (255 / 4);
-                })
-            );
-        });
-        peekcycleBtn.addEventListener('click', () => {
-            let val = id('peek_input').value;
-            val++;
-            id('peek_input').value = val;
-            peekBtn.click();
-        });
-        peekcyclebackBtn.addEventListener('click', () => {
-            let val = id('peek_input').value;
-            val--;
-            id('peek_input').value = val;
-            peekBtn.click();
-        });
-
-        function initAll() {
-            brain = new NeuralNetwork(784);
-            brain.addLayer(16, 'dense', {
-                activation_fn: 'sigmoid',
-                weights_start: 4,
-                norm_weight_val: 5
-            });
-            brain.addLayer(16, 'dense', {
-                activation_fn: 'sigmoid'
-            });
-            brain.addLayer(10, 'dense', {
-                activation_fn: 'softmax'
-            }, true);
-            brain.config.loss_fn = 'cross_entropy';
-            brain.config.learning_fn = 'SGD';
-            brain.init();
-            id('peek_info').innerText =
-                'Peek into the hidden layer, darker values means larger weights. (0-' + (brain.layers[0].num_of_outputs - 1) + ')';
-        }
-
+      let somedata = "";
+      id("download").addEventListener("click", () => {
+        download(brain, "mnist_classifier.json");
+      });
+      id("restart").addEventListener("click", () => {
         initAll();
-
-        function predict(data) {
-            return brain.predict(data);
+        trainings = 0;
+        lim = 95;
+      });
+      id("start").addEventListener("click", () => {
+        if (!LOOPING) {
+          start();
+        } else {
+          stop();
         }
+      });
+      start = () => {
+        MAINLOOP = setInterval(loop, 1000 / FPS);
+        id("start").innerText = "pause";
+        LOOPING = true;
+      };
+      stop = () => {
+        clearInterval(MAINLOOP);
+        id("start").innerText = "start";
+        LOOPING = false;
+      };
 
-        function train(num) {
-            if (!num) {
-                num = 1;
-            }
-            for (let i = 0; i < num; i++) {
-                let data = getData();
-                brain.train(data.pixels, enumerate(data.label));
-
-                training_times++;
-            }
+      function enumerate(n) {
+        n = parseInt(n);
+        if (n < 0 || n > 9) {
+          return 0;
         }
-
-        function getData() {
-            return somedata[(Math.random() * (somedata.length - 1)) | 0];
-        }
-
-        let training_times = 0;
-        let correct_times = 0;
-        let last_50 = [];
-        let accNum = 50;
-
-        function loop() {
-            if (training) {
-                train(50);
-            }
-            let currData = getData();
-            let lbl = currData.label;
-            let prediction = predict(currData.pixels);
-            let pred_num = denumerate(prediction);
-            let correct = parseInt(lbl) === pred_num;
-            drawImage(ctx, currData.pixels);
-            info1.innerText = 'Label: ' + currData.label;
-            info2.innerText = 'Array:\n ' + JSON.stringify(enumerate(lbl));
-            let index = argMax(prediction);
-            let normarray = prediction.map(x => ((x * 10) | 0) / 10);
-            let lastpart = normarray.splice(index);
-            let chosen = lastpart.splice(0, 1);
-            info3.innerHTML =
-                'Array: \n' +
-                `[${normarray.length ? normarray + ',' : ''}<span style="color:blue">${chosen}</span>${lastpart.length ? ',' + lastpart : ''}]`;
-            info4.innerText = 'Guess: ' + pred_num;
-            info5.innerText = 'Loss: ' + brain.calc_loss();
-            info6.innerText = 'Loops: ' + training_times;
-            info7.innerText =
-                'Correct: ' +
-                (((last_50.reduce((tot, b) => {
-                                if (b) {
-                                    return (tot += 1);
-                                } else {
-                                    return tot;
-                                }
-                            }, 0) /
-                            last_50.length) *
-                        100) |
-                    0) +
-                '% (' +
-                last_50.length +
-                ')';
-            if (correct) {
-                info4.style.color = 'green';
-                correct_times++;
+        return Array(10)
+          .fill(0)
+          .map((x, i) => {
+            if (n === i) {
+              return 1;
             } else {
-                info4.style.color = 'red';
+              return 0;
             }
-            last_50.push(correct);
-            if (last_50.length > accNum) {
-                last_50.splice(0, 1);
-                if (last_50.length - accNum > 0) {
-                    last_50.splice(0, last_50.length - accNum);
-                }
+          });
+      }
+
+      function denumerate(arr) {
+        if (arr instanceof Array) {
+          return argMax(arr);
+        }
+      }
+
+      function argMax(arr) {
+        return arr.indexOf(arr.reduce((a, b) => Math.max(a, b)));
+      }
+
+      //draw on the canvas
+      let brush_size = 8;
+      let draw_canvas_width = 112;
+      let draw_canvas = id("draw_canvas");
+
+      let painting = false;
+      let draw_ctx = draw_canvas.getContext("2d");
+      let draw_img_data = draw_ctx.getImageData(0, 0, draw_canvas_width, draw_canvas_width);
+      let clear_data = draw_ctx.getImageData(0, 0, draw_canvas_width, draw_canvas_width);
+      draw_canvas.addEventListener("mousedown", () => {
+        // console.log('down');
+        // painting_id = setInterval(paintbrush,10);
+        painting = true;
+        draw_ctx = draw_canvas.getContext("2d");
+        draw_img_data = draw_ctx.getImageData(0, 0, 112, 112);
+      });
+      draw_canvas.addEventListener("mouseup", () => {
+        // console.log('up');
+        // clearInterval(painting_id);
+        painting = false;
+        draw_ctx.putImageData(draw_img_data, 0, 0);
+      });
+      let guessBtn = id("input_prediction");
+      let clearBtn = id("clear_prediction");
+      let predictiontext = id("prediction_text");
+      guessBtn.addEventListener("click", () => {
+        let pixels = [];
+        draw_img_data = draw_ctx.getImageData(0, 0, draw_canvas_width, draw_canvas_width);
+        let scaling = draw_canvas_width / 28;
+        for (let i = 0; i < 28; i++) {
+          for (let j = 0; j < 28; j++) {
+            if (draw_img_data.data[j * 4 * scaling + i * draw_canvas_width * scaling * 4 + 3] === 255) {
+              pixels.push(255);
+            } else {
+              pixels.push(0);
             }
+          }
+        }
+        //console.log(pixels);
+
+        drawImage(ctx, pixels);
+        let prediction = brain.predict(pixels);
+        predictiontext.innerText = denumerate(prediction);
+        let index = argMax(prediction);
+        let normarray = prediction.map((x) => ((x * 10) | 0) / 10);
+        let lastpart = normarray.splice(index);
+        let chosen = lastpart.splice(0, 1);
+        info3.innerHTML = "Array: \n" + `[${normarray.length ? normarray + "," : ""}<span style="color:blue">${chosen}</span>${lastpart.length ? "," + lastpart : ""}]`;
+        info4.innerText = "Guess: " + denumerate(prediction);
+        info5.innerText = "Loss: " + brain.calc_loss();
+      });
+      clearBtn.addEventListener("click", () => {
+        draw_ctx.putImageData(clear_data, 0, 0);
+        predictiontext.innerText = "?";
+      });
+      let brush_size_slider = id("brush_stroke");
+      brush_size_slider.addEventListener("mouseup", () => {
+        brush_size = brush_size_slider.value;
+      });
+      draw_canvas.addEventListener("touchend", (e) => {
+        draw_ctx.putImageData(draw_img_data, 0, 0);
+      });
+      draw_canvas.addEventListener("touchmove", (e) => {
+        e.preventDefault(); // we don't want to scroll
+        draw_ctx = draw_canvas.getContext("2d");
+        draw_img_data = draw_ctx.getImageData(0, 0, 112, 112);
+        let touch = e.touches[0];
+        let left = touch.clientX - (draw_canvas.offsetLeft + draw_canvas.parentElement.offsetLeft) - 2;
+        if (left < 0) left = 0;
+        if (left > draw_canvas_width) left = draw_canvas_width;
+        let top = touch.clientY - (draw_canvas.offsetTop + draw_canvas.parentElement.offsetTop) - 2;
+        if (top < 0) top = 0;
+        if (top > draw_canvas_width) top = draw_canvas_width;
+        top = top | 0;
+        left = left | 0;
+
+        let pixel_index_array = [];
+        for (let k = 0; k < brush_size; k++) {
+          pixel_index_array.push(draw_canvas_width * 4 * k + left * 4 + top * draw_canvas_width * 4);
+        }
+        for (let j = 0; j < 4 * brush_size; j++) {
+          pixel_index_array.forEach((index) => {
+            draw_img_data.data[index + j] = 0;
+            if ((j + 1) % 4 === 0) {
+              draw_img_data.data[index + j] = 255;
+            }
+          });
         }
 
-    </script>
-</body>
+        draw_ctx.putImageData(draw_img_data, 0, 0);
+      });
+      draw_canvas.addEventListener("mousemove", (e) => {
+        if (painting) {
+          let left = e.clientX - (draw_canvas.offsetLeft + draw_canvas.parentElement.offsetLeft) - 2;
+          if (left < 0) left = 0;
+          if (left > draw_canvas_width) left = draw_canvas_width;
+          let top = e.clientY - (draw_canvas.offsetTop + draw_canvas.parentElement.offsetTop) - 2;
+          if (top < 0) top = 0;
+          if (top > draw_canvas_width) top = draw_canvas_width;
+          top = top | 0;
+          left = left | 0;
 
+          let pixel_index_array = [];
+          for (let k = 0; k < brush_size; k++) {
+            pixel_index_array.push(draw_canvas_width * 4 * k + left * 4 + top * draw_canvas_width * 4);
+          }
+          for (let j = 0; j < 4 * brush_size; j++) {
+            pixel_index_array.forEach((index) => {
+              draw_img_data.data[index + j] = 0;
+              if ((j + 1) % 4 === 0) {
+                draw_img_data.data[index + j] = 255;
+              }
+            });
+          }
+
+          draw_ctx.putImageData(draw_img_data, 0, 0);
+        }
+      });
+      draw_canvas.addEventListener("mouseleave", () => {
+        if (painting) {
+          //console.log('leave');
+          // clearInterval(painting_id);
+          painting = false;
+          draw_ctx.putImageData(draw_img_data, 0, 0);
+        }
+      });
+
+      //peeking function
+
+      let peekBtn = id("peek_button");
+      let peekcycleBtn = id("peek_cycle_button");
+      let peekcyclebackBtn = id("peek_cycleback_button");
+      peekBtn.addEventListener("click", () => {
+        drawImage(
+          ctx,
+          brain.layers[0].weight_array[0][0].values[id("peek_input").value].map((val) => {
+            val += 2;
+            return val * (255 / 4);
+          })
+        );
+      });
+      peekcycleBtn.addEventListener("click", () => {
+        let val = id("peek_input").value;
+        val++;
+        id("peek_input").value = val;
+        peekBtn.click();
+      });
+      peekcyclebackBtn.addEventListener("click", () => {
+        let val = id("peek_input").value;
+        val--;
+        id("peek_input").value = val;
+        peekBtn.click();
+      });
+
+      function initAll() {
+        brain = new NeuralNetwork(784);
+        brain.addLayer(16, "dense", {
+          activation_fn: "sigmoid",
+          weights_start: 4,
+          norm_weight_val: 5,
+        });
+        brain.addLayer(16, "dense", {
+          activation_fn: "sigmoid",
+        });
+        brain.addLayer(
+          10,
+          "dense",
+          {
+            activation_fn: "softmax",
+          },
+          true
+        );
+        brain.config.loss_fn = "cross_entropy";
+        brain.config.learning_fn = "SGD";
+        brain.init();
+        id("peek_info").innerText = "Peek into the hidden layer, darker values means larger weights. (0-" + (brain.layers[0].num_of_outputs - 1) + ")";
+      }
+
+      initAll();
+
+      function predict(data) {
+        return brain.predict(data);
+      }
+
+      function train(num) {
+        if (!num) {
+          num = 1;
+        }
+        for (let i = 0; i < num; i++) {
+          let data = getData();
+          brain.train(data.pixels, enumerate(data.label));
+
+          training_times++;
+        }
+      }
+
+      function getData() {
+        return somedata[(Math.random() * (somedata.length - 1)) | 0];
+      }
+
+      let training_times = 0;
+      let correct_times = 0;
+      let last_50 = [];
+      let accNum = 50;
+
+      function loop() {
+        if (training) {
+          train(50);
+        }
+        let currData = getData();
+        let lbl = currData.label;
+        let prediction = predict(currData.pixels);
+        let pred_num = denumerate(prediction);
+        let correct = parseInt(lbl) === pred_num;
+        drawImage(ctx, currData.pixels);
+        info1.innerText = "Label: " + currData.label;
+        info2.innerText = "Array:\n " + JSON.stringify(enumerate(lbl));
+        let index = argMax(prediction);
+        let normarray = prediction.map((x) => ((x * 10) | 0) / 10);
+        let lastpart = normarray.splice(index);
+        let chosen = lastpart.splice(0, 1);
+        info3.innerHTML = "Array: \n" + `[${normarray.length ? normarray + "," : ""}<span style="color:blue">${chosen}</span>${lastpart.length ? "," + lastpart : ""}]`;
+        info4.innerText = "Guess: " + pred_num;
+        info5.innerText = "Loss: " + brain.calc_loss();
+        info6.innerText = "Loops: " + training_times;
+        info7.innerText =
+          "Correct: " +
+          (((last_50.reduce((tot, b) => {
+            if (b) {
+              return (tot += 1);
+            } else {
+              return tot;
+            }
+          }, 0) /
+            last_50.length) *
+            100) |
+            0) +
+          "% (" +
+          last_50.length +
+          ")";
+        if (correct) {
+          info4.style.color = "green";
+          correct_times++;
+        } else {
+          info4.style.color = "red";
+        }
+        last_50.push(correct);
+        if (last_50.length > accNum) {
+          last_50.splice(0, 1);
+          if (last_50.length - accNum > 0) {
+            last_50.splice(0, last_50.length - accNum);
+          }
+        }
+      }
+    </script>
+  </body>
 </html>
